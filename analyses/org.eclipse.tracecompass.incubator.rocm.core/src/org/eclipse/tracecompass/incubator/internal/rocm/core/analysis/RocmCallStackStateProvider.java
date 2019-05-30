@@ -9,9 +9,13 @@
 
 package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.analysis.os.linux.core.model.HostThread;
@@ -38,17 +42,30 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 @SuppressWarnings("restriction")
 public class RocmCallStackStateProvider extends CallStackStateProvider {
 
-    static final String EDGES = "EDGES"; //$NON-NLS-1$
+
     private static final int VERSION = 1;
-    private static final String BEGIN_TIME_FIELD = "args/BeginNs"; //$NON-NLS-1$
-    private static final String END_TIME_FIELD = "args/EndNs"; //$NON-NLS-1$
-    private static final String FROM_TIME_FIELD = "args/TimingNs"; //$NON-NLS-1$
-    private static final String MEMORY_LANE = "Memory Transfers"; //$NON-NLS-1$
-    private static final String GPU_LANE = "GPU"; //$NON-NLS-1$
-    private static final String RUNTIME_API_LANE = "Runtime API"; //$NON-NLS-1$
-    private static final String UNKNOWN_LANE = "Unknown"; //$NON-NLS-1$
-    private static final String COUNTERS_LANE = "Counters"; //$NON-NLS-1$
+    private static final @NonNull String BEGIN_TIME_FIELD = "args/BeginNs"; //$NON-NLS-1$
+    private static final @NonNull String END_TIME_FIELD = "args/EndNs"; //$NON-NLS-1$
+    private static final @NonNull String FROM_TIME_FIELD = "args/TimingNs"; //$NON-NLS-1$
+    private static final @NonNull String GPU_ID_FIELD = "args/gpu-id"; //$NON-NLS-1$
+    private static final String[] ARGS_TO_FILTER = new String[] { BEGIN_TIME_FIELD, END_TIME_FIELD,
+            FROM_TIME_FIELD, GPU_ID_FIELD, "args/KernelName", "args/queue-id", "args/queue-index",   //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$
+            "args/tid", "args/grd", "args/wgr", "args/lds", "args/scr", "args/vgpr", "args/sgpr",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$//$NON-NLS-7$
+            "args/fbar", "args/sig", "args/DispatchNs", "args/CompleteNs", "args/DurationNs",   //$NON-NLS-1$//$NON-NLS-2$//$NON-NLS-3$//$NON-NLS-4$//$NON-NLS-5$
+            "args/args", "args/pid", "args/Name" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    private static final Set<String> ARGS_TO_FILTER_SET = new HashSet<>(Arrays.asList(ARGS_TO_FILTER));
+
+    // Lanes name
+    static final @NonNull String EDGES_LANE = "EDGES"; //$NON-NLS-1$
+    private static final @NonNull String MEMORY_LANE = "Memory Transfers"; //$NON-NLS-1$
+    private static final @NonNull String GPU_LANE = "GPU"; //$NON-NLS-1$
+    private static final @NonNull String RUNTIME_API_LANE = "Runtime API"; //$NON-NLS-1$
+    private static final @NonNull String UNKNOWN_LANE = "Unknown"; //$NON-NLS-1$
+    private static final @NonNull String COUNTERS_LANE = "Counters"; //$NON-NLS-1$
+    private static final @NonNull String GPU_INFO_LANE = "GPUInfo"; //$NON-NLS-1$
+
     private final ITmfEventAspect<?> fIdAspect;
+    private int fEdgeId = 0;
 
     /**
      * Map of trace event scope ID string to their start times
@@ -64,7 +81,7 @@ public class RocmCallStackStateProvider extends CallStackStateProvider {
      *
      * @param trace the trace to analyze.
      */
-    public RocmCallStackStateProvider(ITmfTrace trace) {
+    public RocmCallStackStateProvider(@NonNull ITmfTrace trace) {
         super(trace);
         fIdAspect = TraceEventAspects.ID_ASPECT;
     }
@@ -154,16 +171,22 @@ public class RocmCallStackStateProvider extends CallStackStateProvider {
         case TraceEventPhases.FLOW_STEP:
             updateEndFlowEvent(event);
             break;
+        case TraceEventPhases.METADATA:
+            addMetadata(event);
+            break;
         default:
             return;
         }
     }
 
     private static long getTimeFromEventField(ITmfEvent event, String field) {
-        return Long.parseLong((String) event.getContent().getField(field).getValue());
+        if (event.getContent().getFieldNames().contains(field)) {
+            return Long.parseLong((String) event.getContent().getField(field).getValue());
+        }
+        return 0l;
     }
 
-    private void handleCompleteEvent(ITmfEvent event) {
+    private void handleCompleteEvent(@NonNull ITmfEvent event) {
         ITmfStateSystemBuilder ssb = getStateSystemBuilder();
         if (ssb == null) {
             return;
@@ -192,7 +215,7 @@ public class RocmCallStackStateProvider extends CallStackStateProvider {
         fEdgeSrcHosts.putIfAbsent(id, currHostThread);
     }
 
-    private long getEventNanoTime(ITmfEvent event) {
+    private long getEventNanoTime(@NonNull ITmfEvent event) {
         ITmfStateSystemBuilder ssb = getStateSystemBuilder();
         if (ssb == null) {
             return 0;
@@ -234,7 +257,7 @@ public class RocmCallStackStateProvider extends CallStackStateProvider {
         if (srcHostThread != null) {
             int edgeQuark = getAvailableEdgeQuark(ssb, startTime);
 
-            Object edgeStateValue = new EdgeStateValue(Integer.parseInt(sId), srcHostThread, currHostThread);
+            Object edgeStateValue = new EdgeStateValue(fEdgeId++, srcHostThread, currHostThread);
 
             ssb.modifyAttribute(startTime, edgeStateValue, edgeQuark);
             ssb.modifyAttribute(ts, (Object) null, edgeQuark);
@@ -242,7 +265,7 @@ public class RocmCallStackStateProvider extends CallStackStateProvider {
     }
 
     private static int getAvailableEdgeQuark(ITmfStateSystemBuilder ssb, long startTime) {
-        int edgeRoot = ssb.getQuarkAbsoluteAndAdd(EDGES);
+        int edgeRoot = ssb.getQuarkAbsoluteAndAdd(EDGES_LANE);
         List<@NonNull Integer> subQuarks = ssb.getSubAttributes(edgeRoot, false);
 
         for (int quark : subQuarks) {
@@ -261,17 +284,47 @@ public class RocmCallStackStateProvider extends CallStackStateProvider {
         if (ssb == null) {
             return;
         }
-        int countersQuark = ssb.getQuarkAbsoluteAndAdd(COUNTERS_LANE, "VALUInsts"); //$NON-NLS-1$
         long time = getTimeFromEventField(event, END_TIME_FIELD);
-        ITmfEventField eventContent = event.getContent().getField("args/VALUInsts"); //$NON-NLS-1$
-        if (eventContent == null) {
-            return;
+        // Add every args value that are not in the args to filter set.
+        // We assume that it is a counter if it is not in this set.
+        for (String fieldName: event.getContent().getFieldNames()) {
+            if (fieldName.startsWith("args/") == false || ARGS_TO_FILTER_SET.contains(fieldName)) { //$NON-NLS-1$
+                continue;
+            }
+            ITmfEventField field = event.getContent().getField(fieldName);
+            if (field == null) {
+                return;
+            }
+            // This quark is set in the loop to make sure that we have a kernel event with counters
+            int gpuCountersQuark = ssb.getQuarkAbsoluteAndAdd(COUNTERS_LANE, event.getContent().getFieldValue(String.class, GPU_ID_FIELD));
+            int counterQuark = ssb.getQuarkRelativeAndAdd(gpuCountersQuark, fieldName);
+            ssb.modifyAttribute(
+                time,
+                field.getValue(),
+                counterQuark
+            );
         }
-        int counterValue = Integer.parseInt((String) eventContent.getValue());
-        ssb.modifyAttribute(
-            time,
-            counterValue,
-            countersQuark
-        );
+    }
+
+    private void addMetadata(ITmfEvent event) {
+        if (event.getName().equals("gpu_info")) { //$NON-NLS-1$
+            ITmfStateSystemBuilder ssb = getStateSystemBuilder();
+            if (ssb == null) {
+                return;
+            }
+            int gpuQuark = ssb.getQuarkAbsoluteAndAdd(
+                GPU_INFO_LANE,
+                (String) event.getContent().getField("args/gpu-id").getValue() //$NON-NLS-1$
+            );
+            for (ITmfEventField field : event.getContent().getFields()) {
+                if (field == null) {
+                    continue;
+                }
+                if (field.getName().startsWith("args/")) { //$NON-NLS-1$
+                    int fieldQuark = ssb.getQuarkRelativeAndAdd(gpuQuark, field.getName());
+                    ssb.modifyAttribute(0, field.getValue(), fieldQuark);
+                }
+            }
+        }
     }
 }

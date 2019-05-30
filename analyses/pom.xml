@@ -48,6 +48,9 @@
     <module>org.eclipse.tracecompass.incubator.scripting.core</module>
     <module>org.eclipse.tracecompass.incubator.scripting.core.tests</module>
     <module>org.eclipse.tracecompass.incubator.scripting.ui</module>
+    <module>org.eclipse.tracecompass.incubator.rocm</module>
+    <module>org.eclipse.tracecompass.incubator.rocm.core</module>
+    <module>org.eclipse.tracecompass.incubator.rocm.ui</module>
     <!-- insert modules here -->
   </modules>
 

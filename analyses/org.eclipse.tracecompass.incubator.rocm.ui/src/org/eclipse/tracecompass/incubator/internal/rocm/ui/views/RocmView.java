@@ -1,3 +1,12 @@
+/*******************************************************************************
+ * Copyright (c) 2019 École Polytechnique de Montréal
+ *
+ * All rights reserved. This program and the accompanying materials are
+ * made available under the terms of the Eclipse Public License v1.0 which
+ * accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *******************************************************************************/
+
 package org.eclipse.tracecompass.incubator.internal.rocm.ui.views;
 
 import com.google.common.collect.ImmutableList;
@@ -34,7 +43,7 @@ public class RocmView extends DataProviderBaseView {
     };
 
     /** View ID. */
-    public static final String ID = "org.eclipse.tracecompass.analysis.rocm.core.analysis.view"; //$NON-NLS-1$
+    public static final @NonNull String ID = "org.eclipse.tracecompass.analysis.rocm.core.analysis.view"; //$NON-NLS-1$
 
     /**
      * RocmView Constructor

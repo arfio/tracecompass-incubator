@@ -242,7 +242,7 @@ public class FlameChartDataProvider extends AbstractTmfTraceDataProvider impleme
 
     @Override
     public TmfModelResponse<List<ITimeGraphArrow>> fetchArrows(Map<String, Object> fetchParameters, @Nullable IProgressMonitor monitor) {
-        List<ITmfStateInterval> arrows = fArrowProvider.fetchArrows(fetchParameters, monitor);
+        List<ITmfStateInterval> arrows = fArrowProvider.fetchArrows(fetchParameters, monitor, this.fAnalysisId);
         List<ITimeGraphArrow> tgArrows = new ArrayList<>();
         // First, get the distinct callstacks
         fLock.readLock().lock();

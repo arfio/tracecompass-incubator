@@ -30,7 +30,7 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
  * @author Arnaud Fiorini
  *
  */
-public class RocmXYDataProviderFactory implements IDataProviderFactory {
+public class RocmRooflineLineDataProviderFactory implements IDataProviderFactory {
 
     @Override
     public @Nullable ITmfTreeDataProvider<? extends ITmfTreeDataModel> createProvider(@NonNull ITmfTrace trace) {
@@ -39,7 +39,7 @@ public class RocmXYDataProviderFactory implements IDataProviderFactory {
             @NonNull List<@NonNull ITmfTreeXYDataProvider<@NonNull TmfTreeDataModel>> dataProviders = new ArrayList<>();
             for (RocmCallStackAnalysis module : TmfTraceUtils.getAnalysisModulesOfClass(trace, RocmCallStackAnalysis.class)) {
                 ITmfTrace subTrace = module.getTrace();
-                ITmfTreeXYDataProvider<@NonNull TmfTreeDataModel> provider = new RocmXYDataProvider(Objects.requireNonNull(subTrace), module);
+                ITmfTreeXYDataProvider<@NonNull TmfTreeDataModel> provider = new RocmRooflineLineDataProvider(Objects.requireNonNull(subTrace), module);
                 dataProviders.add(provider);
             }
             if (dataProviders.isEmpty()) {
@@ -47,8 +47,8 @@ public class RocmXYDataProviderFactory implements IDataProviderFactory {
             } else if (dataProviders.size() == 1) {
                 return dataProviders.get(0);
             }
-            return new TmfTreeXYCompositeDataProvider<>(dataProviders, "Counters", RocmXYDataProvider.ID); //$NON-NLS-1$
+            return new TmfTreeXYCompositeDataProvider<>(dataProviders, "RooflineLine", RocmRooflineLineDataProvider.ID); //$NON-NLS-1$
         }
-        return TmfTreeXYCompositeDataProvider.create(traces, "Counters", RocmXYDataProvider.ID); //$NON-NLS-1$
+        return TmfTreeXYCompositeDataProvider.create(traces, "RooflineLine", RocmRooflineLineDataProvider.ID); //$NON-NLS-1$
     }
 }

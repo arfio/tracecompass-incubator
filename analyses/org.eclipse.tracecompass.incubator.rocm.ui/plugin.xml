@@ -12,6 +12,15 @@
             name="Rocm View"
             restorable="true">
       </view>
+      <view
+            allowMultiple="false"
+            category="org.eclipse.linuxtools.tmf.ui.views.category"
+            class="org.eclipse.tracecompass.incubator.internal.rocm.ui.views.TestLineRocmView"
+            icon="icons/sample.png"
+            id="org.eclipse.tracecompass.analysis.rocm.core.analysis.testview.line"
+            name="Rocm Xy View"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.linuxtools.tmf.core.analysis">

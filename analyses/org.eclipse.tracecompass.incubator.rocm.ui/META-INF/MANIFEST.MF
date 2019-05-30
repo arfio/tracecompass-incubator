@@ -9,7 +9,6 @@ Bundle-Activator: org.eclipse.tracecompass.incubator.internal.rocm.ui.Activator
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.jdt.annotation;bundle-version="2.2.200",
  org.eclipse.tracecompass.common.core,
  org.eclipse.tracecompass.incubator.callstack.core,
  com.google.guava,
@@ -20,8 +19,10 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.tracecompass.tmf.ctf.core,
  org.eclipse.tracecompass.analysis.os.linux.ui,
  org.eclipse.tracecompass.analysis.os.linux.core,
+ org.eclipse.jdt.annotation;bundle-version="[2.0.0,3.0.0)";resolution:=optional,
  org.eclipse.tracecompass.incubator.rocm.core,
- org.eclipse.tracecompass.incubator.callstack.ui
+ org.eclipse.tracecompass.incubator.callstack.ui,
+ org.eclipse.tracecompass.analysis.timing.ui
 Export-Package: org.eclipse.tracecompass.incubator.internal.rocm.ui;x-internal:=true
 Automatic-Module-Name: org.eclipse.tracecompass.incubator.rocm.ui
 Import-Package: org.eclipse.tracecompass.internal.tmf.analysis.xml.core.module

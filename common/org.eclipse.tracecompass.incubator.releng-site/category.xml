@@ -55,6 +55,10 @@
       <category name="analyses"/>
    </feature>
    <bundle id="org.eclipse.tracecompass.incubator.analysis.core" version="0.0.0">
+   <feature url="features/org.eclipse.tracecompass.incubator.rocm_0.0.1.qualifier.jar" id="org.eclipse.tracecompass.incubator.rocm" version="0.0.1.qualifier">
+      <category name="analyses"/>
+   </feature>
+   <bundle id="org.eclipse.tracecompass.incubator.analysis.core" version="0.0.1.qualifier">
       <category name="analyses"/>
    </bundle>
    <bundle id="javax.ws.rs"/>

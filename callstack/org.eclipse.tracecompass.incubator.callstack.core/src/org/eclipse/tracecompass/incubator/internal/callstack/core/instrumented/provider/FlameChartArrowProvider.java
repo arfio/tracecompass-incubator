@@ -54,7 +54,7 @@ public class FlameChartArrowProvider {
      *            the monitor
      * @return the corresponding state intervals
      */
-    public List<ITmfStateInterval> fetchArrows(Map<String, Object> fetchParameters, @Nullable IProgressMonitor monitor) {
+    public List<ITmfStateInterval> fetchArrows(Map<String, Object> fetchParameters, @Nullable IProgressMonitor monitor, String moduleId) {
         TimeQueryFilter filter = FetchParametersUtils.createTimeQuery(fetchParameters);
         if (filter == null) {
             return Collections.emptyList();
@@ -66,13 +66,13 @@ public class FlameChartArrowProvider {
         Iterable<InstrumentedCallStackAnalysis> modules = TmfTraceUtils.getAnalysisModulesOfClass(fTrace, InstrumentedCallStackAnalysis.class);
         // TODO Support many analysis modules, here we take only the first one
         Iterator<InstrumentedCallStackAnalysis> iterator = modules.iterator();
-        if (!iterator.hasNext()) {
-            return Collections.emptyList();
+        while (iterator.hasNext()) {
+            csModule = iterator.next();
+            if (csModule.getId().equals(moduleId)) {
+                List<@NonNull ITmfStateInterval> edges = csModule.getLinks(start, end, monitor == null ? new NullProgressMonitor() : monitor);
+                return edges;
+            }
         }
-        csModule = iterator.next();
-        csModule.schedule();
-        List<@NonNull ITmfStateInterval> edges = csModule.getLinks(start, end, monitor == null ? new NullProgressMonitor() : monitor);
-
-        return edges;
+        return Collections.emptyList();
     }
 }

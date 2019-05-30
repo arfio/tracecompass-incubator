@@ -12,7 +12,6 @@ package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
-
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.InstrumentedCallStackAnalysis;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
@@ -29,7 +28,7 @@ public class RocmCallStackAnalysis extends InstrumentedCallStackAnalysis {
     /**
      * Call stack analysis ID
      */
-    public static final String ID = "org.eclipse.tracecompass.incubator.rocm.core.analysis.callstack"; //$NON-NLS-1$
+    public static final @NonNull String ID = "org.eclipse.tracecompass.incubator.rocm.core.analysis.callstack"; //$NON-NLS-1$
 
     @Override
     protected ITmfStateProvider createStateProvider() {
@@ -37,7 +36,7 @@ public class RocmCallStackAnalysis extends InstrumentedCallStackAnalysis {
     }
 
     @Override
-    public @NonNull Iterable<@NonNull TmfAbstractAnalysisRequirement> getAnalysisRequirements() {
+    public Iterable<TmfAbstractAnalysisRequirement> getAnalysisRequirements() {
         return Collections.emptyList();
     }
 
@@ -47,7 +46,7 @@ public class RocmCallStackAnalysis extends InstrumentedCallStackAnalysis {
         if (ss == null) {
             return Collections.emptyList();
         }
-        int edgeQuark = ss.optQuarkAbsolute(RocmCallStackStateProvider.EDGES);
+        int edgeQuark = ss.optQuarkAbsolute(RocmCallStackStateProvider.EDGES_LANE);
         if (edgeQuark == ITmfStateSystem.INVALID_ATTRIBUTE) {
             return Collections.emptyList();
         }
