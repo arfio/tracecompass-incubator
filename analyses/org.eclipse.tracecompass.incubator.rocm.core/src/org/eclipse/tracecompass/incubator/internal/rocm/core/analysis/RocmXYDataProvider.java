@@ -12,6 +12,7 @@ package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -20,14 +21,15 @@ import java.util.Map.Entry;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.internal.tmf.core.model.filters.FetchParametersUtils;
 import org.eclipse.tracecompass.internal.tmf.core.model.xy.AbstractTreeCommonXDataProvider;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.tmf.core.model.YModel;
 import org.eclipse.tracecompass.tmf.core.model.filters.SelectionTimeQueryFilter;
-import org.eclipse.tracecompass.tmf.core.model.filters.TimeQueryFilter;
 import org.eclipse.tracecompass.tmf.core.model.tree.TmfTreeDataModel;
+import org.eclipse.tracecompass.tmf.core.model.tree.TmfTreeModel;
 import org.eclipse.tracecompass.tmf.core.model.xy.IYModel;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 
@@ -44,6 +46,10 @@ public class RocmXYDataProvider extends AbstractTreeCommonXDataProvider<@NonNull
      * Data provider ID
      */
     public static final @NonNull String ID = "org.eclipse.tracecompass.incubator.rocm.core.analysis.dataprovider"; //$NON-NLS-1$
+    /**
+     * Data provider Title
+     */
+    public static final @NonNull String TITLE = "ROCm Profiling Counters"; //$NON-NLS-1$
 
     /**
      * @param trace
@@ -61,7 +67,31 @@ public class RocmXYDataProvider extends AbstractTreeCommonXDataProvider<@NonNull
     }
 
     @Override
-    protected Map<String, IYModel> getYModels(@NonNull ITmfStateSystem ss, @NonNull SelectionTimeQueryFilter filter, @Nullable IProgressMonitor monitor) throws StateSystemDisposedException {
+    protected @NonNull String getTitle() {
+        return TITLE;
+    }
+
+    @Override
+    protected boolean isCacheable() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public @NonNull TmfTreeModel<@NonNull TmfTreeDataModel> getTree(ITmfStateSystem ss, @NonNull Map<@NonNull String, @NonNull Object> fetchParameters, @Nullable IProgressMonitor monitor) throws StateSystemDisposedException {
+        List<@NonNull TmfTreeDataModel> entries = new ArrayList<>();
+        long rootId = getId(ITmfStateSystem.ROOT_ATTRIBUTE);
+        entries.add(new TmfTreeDataModel(rootId, -1, getTrace().getName()));
+        addTreeViewerBranch(ss, rootId, "Counters", entries); //$NON-NLS-1$
+        return new TmfTreeModel<>(Collections.emptyList(), entries);
+    }
+
+    @Override
+    protected @Nullable Map<@NonNull String, @NonNull IYModel> getYModels(@NonNull ITmfStateSystem ss, @NonNull Map<@NonNull String, @NonNull Object> fetchParameters, @Nullable IProgressMonitor monitor) throws StateSystemDisposedException {
+        SelectionTimeQueryFilter filter = FetchParametersUtils.createSelectionTimeQuery(fetchParameters);
+        if (filter == null) {
+            return null;
+        }
         Map<Long, Integer> entries = getSelectedEntries(filter);
         Collection<Long> times = getTimes(filter, ss.getStartTime(), ss.getCurrentEndTime());
         Iterable<@NonNull ITmfStateInterval> query2d = ss.query2D(entries.values(), times);
@@ -108,26 +138,6 @@ public class RocmXYDataProvider extends AbstractTreeCommonXDataProvider<@NonNull
         return ySeries.build();
     }
 
-    @Override
-    protected @NonNull String getTitle() {
-        return "Counters"; //$NON-NLS-1$
-    }
-
-    @Override
-    protected boolean isCacheable() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    protected @NonNull List<@NonNull TmfTreeDataModel> getTree(@NonNull ITmfStateSystem ss, @NonNull TimeQueryFilter filter, @Nullable IProgressMonitor monitor) throws StateSystemDisposedException {
-        List<@NonNull TmfTreeDataModel> entries = new ArrayList<>();
-        long rootId = getId(ITmfStateSystem.ROOT_ATTRIBUTE);
-        entries.add(new TmfTreeDataModel(rootId, -1, getTrace().getName()));
-        addTreeViewerBranch(ss, rootId, "Counters", entries); //$NON-NLS-1$
-        return entries;
-    }
-
     private void addTreeViewerBranch(ITmfStateSystem ss, long parentId, @NonNull String branchName, List<TmfTreeDataModel> entries) {
         int quark = ss.optQuarkAbsolute(branchName);
         if (quark != ITmfStateSystem.INVALID_ATTRIBUTE && !ss.getSubAttributes(quark, false).isEmpty()) {
@@ -149,4 +159,5 @@ public class RocmXYDataProvider extends AbstractTreeCommonXDataProvider<@NonNull
             addTreeViewerEntries(ss, id, childQuark, entries);
         }
     }
+
 }

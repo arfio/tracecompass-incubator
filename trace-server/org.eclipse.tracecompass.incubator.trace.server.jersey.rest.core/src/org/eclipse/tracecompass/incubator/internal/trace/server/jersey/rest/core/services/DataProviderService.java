@@ -76,7 +76,8 @@ public class DataProviderService {
      *
      * @param uuid
      *            UUID of the trace to search for
-     * @return the data provider descriptions with the queried {@link UUID} if it exists.
+     * @return the data provider descriptions with the queried {@link UUID} if
+     *         it exists.
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)

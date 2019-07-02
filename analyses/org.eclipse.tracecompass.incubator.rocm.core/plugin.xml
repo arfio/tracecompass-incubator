@@ -21,12 +21,8 @@
         id="org.eclipse.tracecompass.incubator.rocm.core.analysis.dataprovider">
     </dataProviderFactory>
     <dataProviderFactory
-          class="org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmRooflineLineDataProviderFactory"
-          id="org.eclipse.tracecompass.incubator.rocm.core.analysis.roofline.linedataprovider">
-    </dataProviderFactory>
-    <dataProviderFactory
-          class="org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmRooflineScatterDataProviderFactory"
-          id="org.eclipse.tracecompass.incubator.rocm.core.analysis.roofline.scatterdataprovider">
+          class="org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmRooflineDataProviderFactory"
+          id="org.eclipse.tracecompass.incubator.rocm.core.analysis.roofline.dataprovider">
     </dataProviderFactory>
 </extension>
 </plugin>

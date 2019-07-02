@@ -11,13 +11,17 @@ package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.internal.tmf.core.model.DataProviderDescriptor;
 import org.eclipse.tracecompass.internal.tmf.core.model.xy.TmfTreeXYCompositeDataProvider;
+import org.eclipse.tracecompass.tmf.core.dataprovider.IDataProviderDescriptor;
 import org.eclipse.tracecompass.tmf.core.dataprovider.IDataProviderFactory;
+import org.eclipse.tracecompass.tmf.core.dataprovider.IDataProviderDescriptor.ProviderType;
 import org.eclipse.tracecompass.tmf.core.model.tree.ITmfTreeDataModel;
 import org.eclipse.tracecompass.tmf.core.model.tree.ITmfTreeDataProvider;
 import org.eclipse.tracecompass.tmf.core.model.tree.TmfTreeDataModel;
@@ -26,11 +30,24 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+
 /**
  * @author Arnaud Fiorini
  *
  */
+@SuppressWarnings("restriction")
 public class RocmXYDataProviderFactory implements IDataProviderFactory {
+
+    private static final IDataProviderDescriptor DESCRIPTOR = new DataProviderDescriptor.Builder()
+            .setId(RocmXYDataProvider.ID)
+            .setName(RocmXYDataProvider.TITLE)
+            .setDescription(Objects.requireNonNull("Shows the performance counters of the gpus")) //$NON-NLS-1$
+            .setProviderType(ProviderType.TREE_TIME_XY)
+            .build();
+
+    private static final Predicate<? super ITmfTrace> PREDICATE = t -> TmfTraceUtils.getAnalysisModuleOfClass(t, RocmCallStackAnalysis.class, RocmCallStackAnalysis.ID) != null;
 
     @Override
     public @Nullable ITmfTreeDataProvider<? extends ITmfTreeDataModel> createProvider(@NonNull ITmfTrace trace) {
@@ -50,5 +67,11 @@ public class RocmXYDataProviderFactory implements IDataProviderFactory {
             return new TmfTreeXYCompositeDataProvider<>(dataProviders, "Counters", RocmXYDataProvider.ID); //$NON-NLS-1$
         }
         return TmfTreeXYCompositeDataProvider.create(traces, "Counters", RocmXYDataProvider.ID); //$NON-NLS-1$
+    }
+
+    @Override
+    public Collection<IDataProviderDescriptor> getDescriptors(@NonNull ITmfTrace trace) {
+        Collection<ITmfTrace> traces = TmfTraceManager.getTraceSet(trace);
+        return Iterables.any(traces, PREDICATE) ? Collections.singletonList(DESCRIPTOR) : Collections.emptyList();
     }
 }
