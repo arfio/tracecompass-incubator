@@ -47,7 +47,7 @@ public class RocmXYDataProviderFactory implements IDataProviderFactory {
             .setProviderType(ProviderType.TREE_TIME_XY)
             .build();
 
-    private static final Predicate<? super ITmfTrace> PREDICATE = t -> TmfTraceUtils.getAnalysisModuleOfClass(t, RocmCallStackAnalysis.class, RocmCallStackAnalysis.ID) != null;
+    private static final Predicate<? super @NonNull ITmfTrace> PREDICATE = t -> TmfTraceUtils.getAnalysisModuleOfClass(t, RocmCallStackAnalysis.class, RocmCallStackAnalysis.ID) != null;
 
     @Override
     public @Nullable ITmfTreeDataProvider<? extends ITmfTreeDataModel> createProvider(@NonNull ITmfTrace trace) {

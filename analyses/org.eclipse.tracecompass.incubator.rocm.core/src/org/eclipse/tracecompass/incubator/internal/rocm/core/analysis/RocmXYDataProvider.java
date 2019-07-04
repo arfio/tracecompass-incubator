@@ -106,7 +106,7 @@ public class RocmXYDataProvider extends AbstractTreeCommonXDataProvider<@NonNull
             countersIntervals.put(interval.getAttribute(), interval);
         }
 
-        ImmutableMap.Builder<String, IYModel> ySeries = ImmutableMap.builder();
+        ImmutableMap.Builder<@NonNull String, @NonNull IYModel> ySeries = ImmutableMap.builder();
         for (Entry<Long, Integer> entry : entries.entrySet()) {
             if (monitor != null && monitor.isCanceled()) {
                 return null;

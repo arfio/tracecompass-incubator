@@ -314,7 +314,7 @@ public class RocmCallStackStateProvider extends CallStackStateProvider {
             }
             int gpuQuark = ssb.getQuarkAbsoluteAndAdd(
                 GPU_INFO_LANE,
-                (String) event.getContent().getField("args/gpu-id").getValue() //$NON-NLS-1$
+                (String) event.getContent().getField(GPU_ID_FIELD).getValue()
             );
             for (ITmfEventField field : event.getContent().getFields()) {
                 if (field == null) {
