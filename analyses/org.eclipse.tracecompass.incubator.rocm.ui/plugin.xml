@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            allowMultiple="false"
+            category="org.eclipse.linuxtools.tmf.ui.views.category"
+            class="org.eclipse.tracecompass.incubator.internal.rocm.ui.views.RocmView"
+            icon="icons/sample.png"
+            id="org.eclipse.tracecompass.analysis.rocm.ui.timegraph.view"
+            name="Rocm View"
+            restorable="true">
+      </view>
+      <view
+            allowMultiple="false"
+            category="org.eclipse.linuxtools.tmf.ui.views.category"
+            class="org.eclipse.tracecompass.incubator.internal.rocm.ui.views.RocmRooflineView"
+            icon="icons/sample.png"
+            id="org.eclipse.tracecompass.incubator.rocm.ui.roofline.view"
+            name="Rocm Roofline View"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.linuxtools.tmf.core.analysis">
+      <output
+            class="org.eclipse.tracecompass.tmf.ui.analysis.TmfAnalysisViewOutput"
+            id="org.eclipse.tracecompass.analysis.rocm.ui.timegraph.view">
+         <analysisId
+               id="org.eclipse.tracecompass.incubator.rocm.core.analysis.callstack">
+         </analysisId>
+      </output>
+      <output
+            class="org.eclipse.tracecompass.tmf.ui.analysis.TmfAnalysisViewOutput"
+            id="org.eclipse.tracecompass.incubator.rocm.ui.roofline.view">
+         <analysisId
+               id="org.eclipse.tracecompass.incubator.rocm.core.analysis.callstack">
+         </analysisId>
+      </output>
+   </extension>
+</plugin>

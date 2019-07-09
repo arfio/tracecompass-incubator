@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+        point="org.eclipse.linuxtools.tmf.core.analysis">
+      <module
+            analysis_module="org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmCallStackAnalysis"
+            automatic="true"
+            id="org.eclipse.tracecompass.incubator.rocm.core.analysis.callstack"
+            name="ROCm Analysis">
+         <tracetype
+               applies="true"
+               class="org.eclipse.tracecompass.incubator.internal.traceevent.core.trace.TraceEventTrace">
+         </tracetype>
+      </module>
+   </extension>
+   <extension
+        point="org.eclipse.tracecompass.tmf.core.dataprovider">
+    <dataProviderFactory
+        class="org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmXYDataProviderFactory"
+        id="org.eclipse.tracecompass.incubator.rocm.core.analysis.dataprovider">
+    </dataProviderFactory>
+    <dataProviderFactory
+          class="org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmRooflineDataProviderFactory"
+          id="org.eclipse.tracecompass.incubator.rocm.core.analysis.roofline.dataprovider">
+    </dataProviderFactory>
+</extension>
+</plugin>
