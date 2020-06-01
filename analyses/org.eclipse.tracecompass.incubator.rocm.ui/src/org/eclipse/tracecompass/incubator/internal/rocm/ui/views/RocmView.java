@@ -13,11 +13,11 @@ import com.google.common.collect.ImmutableList;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.incubator.internal.callstack.core.instrumented.provider.FlameChartDataProvider;
-import org.eclipse.tracecompass.incubator.internal.callstack.ui.views.flamechart.FlameChartPresentationProvider;
 import org.eclipse.tracecompass.incubator.internal.callstack.ui.views.flamechart.Messages;
 import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmCallStackAnalysis;
 import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmXYDataProvider;
 import org.eclipse.tracecompass.internal.provisional.tmf.ui.views.timegraph.dataprovider.DataProviderBaseView;
+import org.eclipse.tracecompass.internal.provisional.tmf.ui.widgets.timegraph.BaseDataProviderTimeGraphPresentationProvider;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSelectionRangeUpdatedSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfWindowRangeUpdatedSignal;
@@ -49,7 +49,7 @@ public class RocmView extends DataProviderBaseView {
      * RocmView Constructor
      */
     public RocmView() {
-        super(ID, new FlameChartPresentationProvider(), ImmutableList.of(
+        super(ID, new BaseDataProviderTimeGraphPresentationProvider(), ImmutableList.of(
             FlameChartDataProvider.ID + ":" + RocmCallStackAnalysis.ID, //$NON-NLS-1$
             RocmXYDataProvider.ID
         ));

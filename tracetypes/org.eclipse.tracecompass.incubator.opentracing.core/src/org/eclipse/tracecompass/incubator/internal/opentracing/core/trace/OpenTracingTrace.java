@@ -196,8 +196,8 @@ public class OpenTracingTrace extends JsonTrace {
             val = rafile.read();
         }
 
+        int data = 0;
         if (sb.toString().startsWith("{\"data\"")) { //$NON-NLS-1$
-            int data = 0;
             for (int nbBracket = 0; nbBracket < 2 && data != -1; nbBracket++) {
                 data = rafile.read();
                 while (data != '[' && data != -1) {
@@ -205,7 +205,9 @@ public class OpenTracingTrace extends JsonTrace {
                 }
             }
         } else {
-            rafile.seek(0);
+            while (data != '[' && data != -1) {
+                data = rafile.read();
+            }
         }
     }
 

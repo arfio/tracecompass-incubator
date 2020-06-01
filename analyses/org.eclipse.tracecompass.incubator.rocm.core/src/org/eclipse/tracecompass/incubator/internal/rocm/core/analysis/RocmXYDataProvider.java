@@ -86,6 +86,7 @@ public class RocmXYDataProvider extends AbstractTreeCommonXDataProvider<@NonNull
         return new TmfTreeModel<>(Collections.emptyList(), entries);
     }
 
+    @Deprecated
     @Override
     protected @Nullable Map<@NonNull String, @NonNull IYModel> getYModels(@NonNull ITmfStateSystem ss, @NonNull Map<@NonNull String, @NonNull Object> fetchParameters, @Nullable IProgressMonitor monitor) throws StateSystemDisposedException {
         SelectionTimeQueryFilter filter = FetchParametersUtils.createSelectionTimeQuery(fetchParameters);

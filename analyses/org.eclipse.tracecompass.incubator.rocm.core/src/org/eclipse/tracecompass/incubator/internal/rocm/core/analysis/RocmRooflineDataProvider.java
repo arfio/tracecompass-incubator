@@ -36,7 +36,6 @@ import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
 import org.eclipse.tracecompass.tmf.core.model.CommonStatusMessage;
 import org.eclipse.tracecompass.tmf.core.model.SeriesModel;
 import org.eclipse.tracecompass.tmf.core.model.filters.SelectionTimeQueryFilter;
-import org.eclipse.tracecompass.tmf.core.model.filters.TimeQueryFilter;
 import org.eclipse.tracecompass.tmf.core.model.tree.TmfTreeDataModel;
 import org.eclipse.tracecompass.tmf.core.model.tree.TmfTreeModel;
 import org.eclipse.tracecompass.tmf.core.model.xy.ISeriesModel;
@@ -232,7 +231,7 @@ public class RocmRooflineDataProvider extends AbstractTreeDataProvider<@NonNull 
                 }
             }
         }
-        return TmfXyResponseFactory.create(getTrace().getName(), seriesModels.build(), true);
+        return TmfXyResponseFactory.create(getTrace().getName(), (List<ISeriesModel>) seriesModels.build().values(), true);
     }
 
     private static String getPerfCounterValue(@NonNull ITmfStateSystem ss, int perfCounterQuark, long time) {
@@ -338,11 +337,5 @@ public class RocmRooflineDataProvider extends AbstractTreeDataProvider<@NonNull 
             }
         }
         return null;
-    }
-
-    @Deprecated
-    @Override
-    public @NonNull TmfModelResponse<@NonNull ITmfXyModel> fetchXY(@NonNull TimeQueryFilter filter, @Nullable IProgressMonitor monitor) {
-        return TmfXyResponseFactory.createFailedResponse("Deprecated"); //$NON-NLS-1$
     }
 }

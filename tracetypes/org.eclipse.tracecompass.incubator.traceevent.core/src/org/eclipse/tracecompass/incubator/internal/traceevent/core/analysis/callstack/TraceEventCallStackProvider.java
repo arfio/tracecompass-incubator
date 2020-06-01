@@ -398,7 +398,6 @@ public class TraceEventCallStackProvider extends CallStackStateProvider {
             Object edgeStateValue = new EdgeStateValue(fIdCache.computeIfAbsent(key, FUNCTION), srcHostThread, currHostThread);
             ss.modifyAttribute(startTime, edgeStateValue, edgeQuark);
             ss.modifyAttribute(ts, (Object) null, edgeQuark);
-            int tid = (int) getThreadId(event);
             ITmfStateSystemBuilder ssb = getStateSystemBuilder();
             if (ssb == null) {
                 return;

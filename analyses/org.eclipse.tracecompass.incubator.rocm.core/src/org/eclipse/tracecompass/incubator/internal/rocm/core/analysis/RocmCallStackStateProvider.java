@@ -26,6 +26,7 @@ import org.eclipse.tracecompass.incubator.internal.traceevent.core.event.TraceEv
 import org.eclipse.tracecompass.internal.provisional.jsontrace.core.trace.JsonTrace;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
+import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
@@ -187,7 +188,12 @@ public class RocmCallStackStateProvider extends AbstractTmfStateProvider {
         }
         int laneQuark = ssb.getQuarkRelativeAndAdd(callStackQuark, Integer.toString(depthFree));
 
-        ssb.modifyAttribute(timeBegin, event.getName(), laneQuark);
+        String pattern = "\\w+:\\d*"; //$NON-NLS-1$
+        String eventName = event.getName();
+        if (eventName.matches(pattern)) {
+            eventName = eventName.split(":")[0]; //$NON-NLS-1$
+        }
+        ssb.modifyAttribute(timeBegin, eventName, laneQuark);
         ssb.removeAttribute(timeEnd, laneQuark);
     }
 
@@ -203,22 +209,34 @@ public class RocmCallStackStateProvider extends AbstractTmfStateProvider {
         String processName = traceProperties.get("pid-" + getProcessId(event)); //$NON-NLS-1$
 
         // Is it a GPU event ?
-        if (processName != null && processName.startsWith("GPU")) { //$NON-NLS-1$
-            int gpuQuark = ssb.getQuarkAbsoluteAndAdd(PROCESSES, processName);
+        if (processName != null && processName.contains("GPU")) { //$NON-NLS-1$
             // Is it a memory transfer event ?
             if (event.getName().startsWith("hcMemcpy")) { //$NON-NLS-1$
                 int systemQuark = ssb.getQuarkAbsoluteAndAdd(PROCESSES, "System"); //$NON-NLS-1$
                 int memCpyQuark = ssb.getQuarkRelativeAndAdd(systemQuark, MEMORY_LANE);
-                int queueQuark = ssb.getQuarkRelativeAndAdd(memCpyQuark,
+                int queueQuark = ssb.getQuarkRelativeAndAdd(memCpyQuark, "Queue " + //$NON-NLS-1$
                         (String) event.getContent().getField("args/queue-id").getValue()); //$NON-NLS-1$
                 return ssb.getQuarkRelativeAndAdd(queueQuark, CallStackAnalysis.CALL_STACK);
             }
+            int gpuQuark = ssb.getQuarkAbsoluteAndAdd(PROCESSES, "GPU " +  //$NON-NLS-1$
+                    (String) event.getContent().getField("args/gpu-id").getValue()); //$NON-NLS-1$
             int computeQuark = ssb.getQuarkRelativeAndAdd(gpuQuark, "Kernels"); //$NON-NLS-1$
-            int queueQuark = ssb.getQuarkRelativeAndAdd(computeQuark, "queue1"); //$NON-NLS-1$
+            int queueQuark = ssb.getQuarkRelativeAndAdd(computeQuark, "Queue " + //$NON-NLS-1$
+                    (String) event.getContent().getField("args/queue-id").getValue()); //$NON-NLS-1$
             return ssb.getQuarkRelativeAndAdd(queueQuark, CallStackAnalysis.CALL_STACK);
         }
+
+        // Is it a copy event ?
+        if (processName != null && processName.contains("COPY")) { //$NON-NLS-1$
+            int systemQuark = ssb.getQuarkAbsoluteAndAdd(PROCESSES, "System"); //$NON-NLS-1$
+            int memCpyQuark = ssb.getQuarkRelativeAndAdd(systemQuark, MEMORY_LANE);
+            int unidentifiedQueue = ssb.getQuarkRelativeAndAdd(memCpyQuark, "Def. Queue"); //$NON-NLS-1$
+            return ssb.getQuarkRelativeAndAdd(unidentifiedQueue, CallStackAnalysis.CALL_STACK);
+        }
+
         int systemQuark = ssb.getQuarkAbsoluteAndAdd(PROCESSES, "System"); //$NON-NLS-1$
         int runtimeQuark;
+
         // Is it an hsa event ?
         if (event.getName().startsWith("hsa")) { //$NON-NLS-1$
             runtimeQuark = ssb.getQuarkRelativeAndAdd(systemQuark, HSA_API_LANE);
@@ -256,7 +274,7 @@ public class RocmCallStackStateProvider extends AbstractTmfStateProvider {
                     return correspondingEvent.getEndTime() + 1;
                 }
             }
-        } catch (StateSystemDisposedException e) {
+        } catch (StateSystemDisposedException | TimeRangeException e) {
             e.printStackTrace();
         }
         return uSecondTime;
