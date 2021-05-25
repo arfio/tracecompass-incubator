@@ -35,6 +35,12 @@ public interface RocmStrings {
     String GPU_ID = "gpu_id";
     String QUEUE_ID = "queue_id";
     String TID = "tid";
+    String PID = "pid";
+    String CORR_ID = "index";
+    String SIGNAL = "sig";
+    String OBJECT = "obj";
+    String DISPATCH_TS = "dipatch_time";
+    String COMPLETE_TS = "complete_time";
 
     /* State categories */
     String EMPTY_STRING = "";
@@ -51,6 +57,10 @@ public interface RocmStrings {
     String QUEUES = "Queues";
     String QUEUE = "Queue ";
     String GPU_KERNELS = "GPU Kernels";
+
+    /* Event Names */
+    String HIP_SET_DEVICE = "hipSetDevice";
+    String HIP_GET_DEVICE = "hipGetDevice";
 
     /* State values */
     String IDLE = "Idle";
