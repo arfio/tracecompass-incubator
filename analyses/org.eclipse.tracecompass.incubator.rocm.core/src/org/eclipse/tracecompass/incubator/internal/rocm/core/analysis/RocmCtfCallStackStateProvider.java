@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -26,9 +27,14 @@ import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
+import org.eclipse.tracecompass.tmf.core.event.ITmfEventType;
 import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.ITmfTraceWithPreDefinedEvents;
+
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Table;
 
 /**
  * Main state provider that defines the API states and GPU states,
@@ -41,9 +47,14 @@ public class RocmCtfCallStackStateProvider extends AbstractTmfStateProvider {
     private static final String ID = "org.eclipse.tracecompass.incubator.rocm.ctf.callstackstateprovider"; //$NON-NLS-1$
     static final @NonNull String EDGES_LANE = "EDGES"; //$NON-NLS-1$
 
+    IDependencyMaker fDependencyMaker;
     final List<Long> fCurrentKernelDispatched = new LinkedList<>();
     Map<Long, ITmfEvent> fHipKernelDispatchs = new HashMap<>();
     Long fHipDispatchCounter = 0L;
+    Table<Long, Integer, Integer> fHostIdArrowsSystemTable = HashBasedTable.create();
+    Map<Long, Table<Integer, Long, Integer>> fHostIdArrowsGpuTables = new HashMap<>();
+    int fHostIdCounter = 0;
+
     /* Used to calculate unique identifier for each thread and each API */
     private static final Map<String, Integer> fApiId;
     static {
@@ -52,12 +63,30 @@ public class RocmCtfCallStackStateProvider extends AbstractTmfStateProvider {
         fApiId.put(RocmStrings.HSA_API, 2);
         fApiId.put(RocmStrings.KFD_API, 3);
     }
+    private enum GPU_CATEGORIES {
+        QUEUE, STREAM
+    }
+
 
     /**
      * @param trace Trace to follow
      */
     public RocmCtfCallStackStateProvider(@NonNull ITmfTrace trace) {
         super(trace, ID);
+        for (ITmfEventType eventType : ((ITmfTraceWithPreDefinedEvents) trace).getContainedEventTypes()) {
+            if (eventType.getName() == RocmStrings.HSA_API) {
+                fDependencyMaker = new HsaApiHsaActivityDependencyMaker();
+                break;
+            }
+            if (eventType.getName() == RocmStrings.HCC_OPS) {
+                fDependencyMaker = new HipApiHipActivityDependencyMaker();
+                break;
+            }
+            if (eventType.getName() == RocmStrings.HIP_API) {
+                fDependencyMaker = new HipApiHsaActivityDependencyMaker();
+                // If we have HIP_API events, we can have HIP activity events. We shouldn't break in this case
+            }
+        }
     }
 
     @Override
@@ -118,11 +147,20 @@ public class RocmCtfCallStackStateProvider extends AbstractTmfStateProvider {
             return;
         }
         Long gpuId = event.getContent().getFieldValue(Long.class, RocmStrings.GPU_ID);
+        Long queueId = event.getContent().getFieldValue(Long.class, RocmStrings.QUEUE_ID);
+        Table<Integer, Long, Integer> hostIdTable = fHostIdArrowsGpuTables.get(gpuId);
+        if (hostIdTable == null) {
+            hostIdTable = HashBasedTable.create();
+            fHostIdArrowsGpuTables.put(gpuId, hostIdTable);
+        }
         updateGpuGapState(ssb, timestamp, gpuId, eventDispatchId);
         if (fCurrentKernelDispatched.remove(eventDispatchId)) {
             ssb.popAttribute(timestamp, callStackQuark);
             // correlate kernel dispatch to kernel
-            ITmfEvent hipEvent = fHipKernelDispatchs.remove(eventDispatchId);
+            if (fHipKernelDispatchs.size() == 0) {
+                return;
+            }
+            ITmfEvent hipEvent = fHipKernelDispatchs.remove(Collections.min(fHipKernelDispatchs.keySet()));
             if (hipEvent == null) {
                 return;
             }
@@ -133,29 +171,37 @@ public class RocmCtfCallStackStateProvider extends AbstractTmfStateProvider {
             fCurrentKernelDispatched.add(eventDispatchId);
             ssb.pushAttribute(timestamp, eventName, callStackQuark);
             // Add CallStack Identifier (tid equivalent) for the queue quark
-            if (ssb.queryOngoing(callStackQuark) != null && gpuId != null) {
+            if (gpuId != null && !hostIdTable.contains(GPU_CATEGORIES.QUEUE.ordinal(), queueId)) {
                 int parentQuark = ssb.getParentAttributeQuark(callStackQuark);
-                ssb.modifyAttribute(getTrace().getStartTime().toNanos(), gpuId.intValue() * 2, parentQuark);
+                hostIdTable.put(GPU_CATEGORIES.QUEUE.ordinal(), queueId, fHostIdCounter++);
+                ssb.modifyAttribute(getTrace().getStartTime().toNanos(), hostIdTable.get(GPU_CATEGORIES.QUEUE.ordinal(), queueId), parentQuark);
             }
             // Correlate kernel dispatch to kernel
-            ITmfEvent hipEvent = fHipKernelDispatchs.get(eventDispatchId);
+            if (fHipKernelDispatchs.size() == 0) {
+                return;
+            }
+            ITmfEvent hipEvent = fHipKernelDispatchs.get(Collections.min(fHipKernelDispatchs.keySet()));
             if (hipEvent == null) {
                 return;
             }
             int hipStreamCallStackQuark = getHipStreamCallStackQuark(ssb, hipEvent, gpuId);
             ssb.pushAttribute(timestamp, eventName, hipStreamCallStackQuark);
             // Add CallStack Identifier (tid equivalent) for the stream quark
-            if (ssb.queryOngoing(hipStreamCallStackQuark) != null && gpuId != null) {
+            Integer hipStreamId = getHipStreamId(hipEvent);
+            if (gpuId != null && !hostIdTable.contains(GPU_CATEGORIES.STREAM.ordinal(), hipStreamId.longValue())) {
                 int parentQuark = ssb.getParentAttributeQuark(hipStreamCallStackQuark);
-                ssb.modifyAttribute(getTrace().getStartTime().toNanos(), gpuId.intValue() * 2 + 1, parentQuark);
+                hostIdTable.put(GPU_CATEGORIES.STREAM.ordinal(), hipStreamId.longValue(), fHostIdCounter++);
+                ssb.modifyAttribute(getTrace().getStartTime().toNanos(), hostIdTable.get(GPU_CATEGORIES.STREAM.ordinal(), hipStreamId.longValue()), parentQuark);
             }
             // Add Kernel Launch Dependency
             Long tid = hipEvent.getContent().getFieldValue(Long.class, RocmStrings.TID);
             if (tid != null && gpuId != null) {
-                HostThread src = new HostThread(event.getTrace().getHostId(),
-                        Math.toIntExact(tid) * fApiId.getOrDefault(hipEvent.getName(), 4));
-                HostThread destQueue = new HostThread(event.getTrace().getHostId(), gpuId.intValue() * 2);
-                HostThread destStream = new HostThread(event.getTrace().getHostId(), gpuId.intValue() * 2 + 1);
+                Integer srcHostId = fHostIdArrowsSystemTable.get(tid, fApiId.getOrDefault(hipEvent.getName(), 4));
+                Integer destQueueHostId = hostIdTable.get(GPU_CATEGORIES.QUEUE.ordinal(), queueId);
+                Integer destStreamHostId = hostIdTable.get(GPU_CATEGORIES.STREAM.ordinal(), hipStreamId.longValue());
+                HostThread src = new HostThread(event.getTrace().getHostId(), srcHostId);
+                HostThread destQueue = new HostThread(event.getTrace().getHostId(), destQueueHostId);
+                HostThread destStream = new HostThread(event.getTrace().getHostId(), destStreamHostId);
                 addArrow(ssb, hipEvent.getTimestamp().getValue(), timestamp, Math.toIntExact(eventDispatchId), src, destQueue);
                 addArrow(ssb, hipEvent.getTimestamp().getValue(), timestamp, Math.toIntExact(eventDispatchId), src, destStream);
             }
@@ -211,21 +257,39 @@ public class RocmCtfCallStackStateProvider extends AbstractTmfStateProvider {
         }
         // Add CallStack Identifier (tid multiplied by API type)
         Long tid = content.getFieldValue(Long.class, RocmStrings.TID);
-        if (ssb.queryOngoing(callStackQuark) != null && tid != null) {
+        if (tid != null && !fHostIdArrowsSystemTable.contains(tid, fApiId.getOrDefault(event.getName(), 4))) {
             int parentQuark = ssb.getParentAttributeQuark(callStackQuark);
-            ssb.modifyAttribute(getTrace().getStartTime().toNanos(),
-                    tid.intValue() * fApiId.getOrDefault(event.getName(), 4), parentQuark);
+            fHostIdArrowsSystemTable.put(tid, fApiId.getOrDefault(event.getName(), 4), fHostIdCounter++);
+            int hostId = fHostIdArrowsSystemTable.get(tid, fApiId.getOrDefault(event.getName(), 4));
+            ssb.modifyAttribute(getTrace().getStartTime().toNanos(), hostId, parentQuark);
         }
         // Add kernel launch request to the map to correlate kernel launches to streams
-        if (eventName.equals("hipLaunchKernel_enter")) { //$NON-NLS-1$
+        /*if (eventName.equals("hipLaunchKernel_enter")) { //$NON-NLS-1$
             fHipKernelDispatchs.put(fHipDispatchCounter, event);
             fHipDispatchCounter += 1;
-        }
+        }*/
         // Add event to API lane
         if (eventName.endsWith("_exit")) { //$NON-NLS-1$
             ssb.popAttribute(timestamp, callStackQuark);
         } else {
             ssb.pushAttribute(timestamp, eventName.substring(0, eventName.length()-6), callStackQuark);
+        }
+        // Add Thread to device association from hipSetDevice and hipGetDevice calls
+        if (eventName.endsWith("_exit")) {
+            eventName = eventName.substring(0, eventName.length() - 5);
+        } else {
+            eventName = eventName.substring(0, eventName.length() - 6);
+        }
+        if ((eventName.equals(RocmStrings.HIP_SET_DEVICE) || eventName.equals(RocmStrings.HIP_GET_DEVICE)) && tid != null) {
+            String args = content.getFieldValue(String.class, "args");
+            Pattern p = Pattern.compile("deviceId\\((\\d*)\\)"); //$NON-NLS-1$
+            Matcher m = p.matcher(args);
+            int hipGpuId = 0; // Default stream
+            if (m.find()) {
+                hipGpuId = Integer.parseInt(m.group(1));
+            }
+            int threadToDeviceQuark = ssb.getQuarkAbsoluteAndAdd("ThreadsToDevice", tid.toString());
+            ssb.modifyAttribute(timestamp, hipGpuId, threadToDeviceQuark);
         }
     }
 
@@ -283,18 +347,23 @@ public class RocmCtfCallStackStateProvider extends AbstractTmfStateProvider {
         return callStackQuark;
     }
 
-    private static int getHipStreamCallStackQuark(ITmfStateSystemBuilder ssb, @NonNull ITmfEvent event, Long gpuId) {
-        int gpuQuark = ssb.getQuarkAbsoluteAndAdd(CallStackStateProvider.PROCESSES, RocmStrings.GPU + gpuId.toString());
-        int hipStreamsQuark = ssb.getQuarkRelativeAndAdd(gpuQuark, RocmStrings.STREAMS);
+    private static Integer getHipStreamId(@NonNull ITmfEvent event) {
         String args = event.getContent().getFieldValue(String.class, RocmStrings.ARGS);
         Pattern p = Pattern.compile("stream\\((\\d*)\\)"); //$NON-NLS-1$
         Matcher m = p.matcher(args);
-        int callStackQuark = 0;
+        int hipStreamId = 1; // Default stream
         if (m.find()) {
-            int hipStreamId = Integer.parseInt(m.group(1));
-            int hipStreamQuark = ssb.getQuarkRelativeAndAdd(hipStreamsQuark, RocmStrings.STREAM + Integer.toString(hipStreamId));
-            callStackQuark = ssb.getQuarkRelativeAndAdd(hipStreamQuark, InstrumentedCallStackAnalysis.CALL_STACK);
+            hipStreamId = Integer.parseInt(m.group(1));
         }
+        return hipStreamId;
+    }
+
+    private static int getHipStreamCallStackQuark(ITmfStateSystemBuilder ssb, @NonNull ITmfEvent event, Long gpuId) {
+        int gpuQuark = ssb.getQuarkAbsoluteAndAdd(CallStackStateProvider.PROCESSES, RocmStrings.GPU + gpuId.toString());
+        int hipStreamsQuark = ssb.getQuarkRelativeAndAdd(gpuQuark, RocmStrings.STREAMS);
+        int hipStreamId = getHipStreamId(event);
+        int hipStreamQuark = ssb.getQuarkRelativeAndAdd(hipStreamsQuark, RocmStrings.STREAM + Integer.toString(hipStreamId));
+        int callStackQuark = ssb.getQuarkRelativeAndAdd(hipStreamQuark, InstrumentedCallStackAnalysis.CALL_STACK);
         return callStackQuark;
     }
 
