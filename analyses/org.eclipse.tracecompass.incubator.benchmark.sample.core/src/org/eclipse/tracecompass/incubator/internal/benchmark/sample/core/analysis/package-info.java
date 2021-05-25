@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020 École Polytechnique de Montréal
+ * Copyright (c) 2021 Polytechnique Montreal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License 2.0 which
@@ -9,4 +9,4 @@
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 
-package org.eclipse.tracecompass.incubator.rocm.core.trace;
+package org.eclipse.tracecompass.incubator.internal.benchmark.sample.core.analysis;

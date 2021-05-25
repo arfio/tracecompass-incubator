@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.linuxtools.tmf.core.tracetype">
+      <type
+            category="org.eclipse.linuxtools.tmf.ctf.core.category.ctf"
+            event_type="org.eclipse.tracecompass.tmf.core.event.TmfEvent"
+            id="org.eclipse.tracecompass.incubator.benchmark.sample.core.trace.monotone"
+            isDirectory="true"
+            name="Monotone"
+            trace_type="org.eclipse.tracecompass.incubator.benchmark.sample.core.trace.MonotoneTrace">
+      </type>
+   </extension>
+   <extension
+         point="org.eclipse.linuxtools.tmf.core.tracetype">
+      <type
+            category="org.eclipse.linuxtools.tmf.ctf.core.category.ctf"
+            event_type="org.eclipse.tracecompass.tmf.core.event.TmfEvent"
+            id="org.eclipse.tracecompass.incubator.benchmark.sample.core.trace.interval"
+            isDirectory="true"
+            name="Interval"
+            trace_type="org.eclipse.tracecompass.incubator.benchmark.sample.core.trace.IntervalTrace">
+      </type>
+   </extension>
+   <extension 
+   		point="org.eclipse.linuxtools.tmf.core.analysis">
+      <module
+            analysis_module="org.eclipse.tracecompass.incubator.internal.benchmark.sample.core.analysis.MonotoneAnalysis"
+            automatic="true"
+            id="org.eclipse.tracecompass.incubator.benchmark.sample.core.analysis.monotone"
+            name="Monotone Analysis">
+         <tracetype
+               applies="true"
+               class="org.eclipse.tracecompass.incubator.benchmark.sample.core.trace.MonotoneTrace">
+         </tracetype>
+      </module>
+   </extension>
+   <extension 
+   		point="org.eclipse.linuxtools.tmf.core.analysis">
+      <module
+            analysis_module="org.eclipse.tracecompass.incubator.internal.benchmark.sample.core.analysis.IntervalAnalysis"
+            automatic="true"
+            id="org.eclipse.tracecompass.incubator.benchmark.sample.core.analysis.interval"
+            name="Interval Analysis">
+         <tracetype
+               applies="true"
+               class="org.eclipse.tracecompass.incubator.benchmark.sample.core.trace.IntervalTrace">
+         </tracetype>
+      </module>
+   </extension>
+</plugin>

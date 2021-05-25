@@ -25,4 +25,17 @@
          </tracetype>
       </module>
    </extension>
+   <extension
+         point="org.eclipse.linuxtools.tmf.core.analysis">
+      <module
+            analysis_module="org.eclipse.tracecompass.analysis.counters.core.CounterAnalysis"
+            automatic="true"
+            icon="icons/runtime.gif"
+            id="org.eclipse.tracecompass.analysis.counters.core.counteranalysis"
+            name="Counters">
+            <tracetype
+               class="org.eclipse.tracecompass.incubator.rocm.core.trace.RocmCtfTrace">
+            </tracetype>
+      </module>
+   </extension>
 </plugin>
