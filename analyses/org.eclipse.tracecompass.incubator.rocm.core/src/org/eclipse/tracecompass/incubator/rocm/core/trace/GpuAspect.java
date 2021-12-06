@@ -7,7 +7,13 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.aspect.TmfDeviceAspect;
 import org.eclipse.tracecompass.tmf.ctf.core.event.CtfTmfEvent;
 
-public abstract class GpuAspect extends TmfDeviceAspect {
+public final class GpuAspect extends TmfDeviceAspect {
+
+    /** The singleton instance */
+    public static final GpuAspect INSTANCE = new GpuAspect();
+
+    private GpuAspect() {
+    }
 
     @Override
     public final String getName() {
@@ -30,7 +36,7 @@ public abstract class GpuAspect extends TmfDeviceAspect {
         }
         ITmfEventField content = event.getContent();
         if (content != null) {
-            Integer fieldValue = content.getFieldValue(Integer.class, RocmStrings.GPU_ID);
+            Integer fieldValue = content.getFieldValue(Integer.class, RocmStrings.DEVICE_ID);
             return fieldValue == null ? null : fieldValue.intValue();
         }
         return null;

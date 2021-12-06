@@ -8,8 +8,8 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.test.performance.Dimension;
 import org.eclipse.test.performance.Performance;
 import org.eclipse.test.performance.PerformanceMeter;
-import org.eclipse.tracecompass.incubator.benchmark.sample.core.trace.MonotoneTrace;
-import org.eclipse.tracecompass.incubator.internal.benchmark.sample.core.analysis.MonotoneAnalysis;
+import org.eclipse.tracecompass.incubator.benchmark.sample.core.trace.IntervalTrace;
+import org.eclipse.tracecompass.incubator.internal.benchmark.sample.core.analysis.IntervalAnalysis;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
@@ -61,15 +61,15 @@ public class TraceStateHistoryTreeBenchmark {
 
         // Here, you can specify which analysis module you want to test by
         // replacing the "KernelAnalysisModule()"
-        Supplier<IAnalysisModule> moduleSupplier = () -> new MonotoneAnalysis();
-        String directoryPath = "/home/arnaud/Documents/test_traces/monotone-vs-intervals/big_opencl_rocm_trace/CTF_trace";
+        Supplier<IAnalysisModule> moduleSupplier = () -> new IntervalAnalysis();
+        String directoryPath = "/home/arnaud/Documents/test_traces/interval_test/trace_with_interval/rpl_data_210721_111826_95375/input_results_210721_111826/CTF_trace";
         File parentDirectory = new File(directoryPath);
         if (!parentDirectory.isDirectory() || parentDirectory.list() == null) {
             System.err.println(String.format("Trace directory not found !\nYou need to setup the directory path before "
                     + "running this benchmark. See the javadoc of this class."));
             return;
         }
-        MonotoneTrace trace = new MonotoneTrace();
+        IntervalTrace trace = new IntervalTrace();
         trace.initTrace(null, parentDirectory.getPath(), CtfTmfEvent.class);
         runOneBenchmark(trace,
                 String.format(TEST_CPU, trace.toString()),
@@ -86,13 +86,13 @@ public class TraceStateHistoryTreeBenchmark {
         for (int i = 0; i < LOOP_COUNT; i++) {
             CtfTmfTrace trace = null;
 
-            MonotoneAnalysis module = null;
+            IntervalAnalysis module = null;
 
             String path = testTrace.getPath();
             try {
                 trace = new CtfTmfTrace();
 
-                module = (MonotoneAnalysis) moduleSupplier.get();
+                module = (IntervalAnalysis) moduleSupplier.get();
                 module.setId("traceTest");
                 trace.initTrace(null, path, CtfTmfEvent.class);
 
