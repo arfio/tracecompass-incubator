@@ -1,10 +1,11 @@
-package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis;
+package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.handlers;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmStrings;
 
 /**
  * @author Arnaud Fiorini
@@ -58,6 +59,12 @@ public class HostThreadIdentifier {
         this(categoryId, category.ordinal(), gpuId + ROCM_CATEGORY.values().length);
     }
 
+    /**
+     * Constructor for API events
+     *
+     * @param apiType
+     * @param tid
+     */
     public HostThreadIdentifier(String apiType, int tid) {
         this(fApiMap.getOrDefault(apiType, -1), tid, ROCM_CATEGORY.SYSTEM.ordinal());
     }

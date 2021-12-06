@@ -1,4 +1,6 @@
-package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis;
+package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.dependency;
+
+import java.util.Map;
 
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
@@ -22,4 +24,6 @@ public interface IDependencyMaker {
      * @param ssb
      */
     public void processEvent(ITmfEvent event, ITmfStateSystemBuilder ssb);
+
+    public Map<Long, ITmfEvent> getApiEventCorrelationMap();
 }

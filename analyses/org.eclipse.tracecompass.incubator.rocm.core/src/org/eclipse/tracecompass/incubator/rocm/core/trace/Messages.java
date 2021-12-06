@@ -10,6 +10,10 @@ public class Messages extends NLS {
 
     public static @Nullable String AspectHelpText_GPU;
 
+    public static @Nullable String AspectName_ApiFunction;
+
+    public static @Nullable String AspectHelpText_ApiFunction;
+
     /**
      * Nanosecond normalized timestamp
      * @since 6.2
