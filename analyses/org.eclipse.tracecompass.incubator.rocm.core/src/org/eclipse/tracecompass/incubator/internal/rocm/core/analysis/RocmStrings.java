@@ -26,6 +26,9 @@ public interface RocmStrings {
     String HCC_OPS = "hcc_ops";
     String ROCTX = "roctx";
     String ASYNC_COPY = "async_copy";
+    String HIP_ACTIVITY = "hip_activity";
+    String HSA_ACTIVITY = "hsa_activity";
+    String KERNEL_EVENT = "kernel_event";
 
     /* Field names */
     String NAME = "name";
@@ -33,7 +36,11 @@ public interface RocmStrings {
     String KERNEL_NAME = "kernel_name";
     String KERNEL_DISPATCH_ID = "kernel_dispatch_id";
     String GPU_ID = "gpu_id";
+    String CORRELATION_ID = "correlation_id";
+    String DEVICE_ID = "device_id";
     String QUEUE_ID = "queue_id";
+    String STREAM_ID = "stream_id";
+    String CID = "cid"; // Function call id, is used to identify the function name
     String TID = "tid";
     String PID = "pid";
     String CORR_ID = "index";
@@ -41,6 +48,8 @@ public interface RocmStrings {
     String OBJECT = "obj";
     String DISPATCH_TS = "dipatch_time";
     String COMPLETE_TS = "complete_time";
+    String END = "end";
+    String MESSAGE = "message";
 
     /* State categories */
     String EMPTY_STRING = "";
@@ -57,10 +66,15 @@ public interface RocmStrings {
     String QUEUES = "Queues";
     String QUEUE = "Queue ";
     String GPU_KERNELS = "GPU Kernels";
+    String RANGES = "Ranges";
 
     /* Event Names */
     String HIP_SET_DEVICE = "hipSetDevice";
     String HIP_GET_DEVICE = "hipGetDevice";
+    String KERNEL_EXECUTION = "KernelExecution";
+    String KERNEL_LAUNCH = "hipLaunchKernel";
+    String HIP_DEVICE_SYNCHRONIZE = "hipDeviceSynchronize";
+    String COPY = "Copy";
 
     /* State values */
     String IDLE = "Idle";

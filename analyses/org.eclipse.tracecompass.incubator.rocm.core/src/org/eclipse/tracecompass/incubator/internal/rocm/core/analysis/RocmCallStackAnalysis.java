@@ -1,20 +1,14 @@
-/*******************************************************************************
- * Copyright (c) 2020 École Polytechnique de Montréal
- *
- * All rights reserved. This program and the accompanying materials are
- * made available under the terms of the Eclipse Public License 2.0 which
- * accompanies this distribution, and is available at
- * https://www.eclipse.org/legal/epl-2.0/
- *
- * SPDX-License-Identifier: EPL-2.0
- *******************************************************************************/
 package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.CallStackSeries;
@@ -22,30 +16,23 @@ import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesyste
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.InstrumentedCallStackAnalysis;
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.CallStackSeries.IThreadIdResolver;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.tmf.core.analysis.requirements.TmfAbstractAnalysisRequirement;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
-
-import com.google.common.collect.ImmutableList;
+import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 
 /**
- * ROCm API call stack analysis which displays the main view of the different APIs and GPU kernels
- *
  * @author Arnaud Fiorini
+ *
  */
-public class RocmCtfCallStackAnalysis extends InstrumentedCallStackAnalysis {
+public class RocmCallStackAnalysis extends InstrumentedCallStackAnalysis {
     /**
      * Call stack analysis ID
      */
-    public static final @NonNull String ID = "org.eclipse.tracecompass.incubator.rocm.core.analysis.callstack"; //$NON-NLS-1$
+    public static final @NonNull String ID = "org.eclipse.tracecompass.incubator.rocm.core.analysis.interval"; //$NON-NLS-1$
 
     @Override
-    protected ITmfStateProvider createStateProvider() {
-        return new RocmCtfCallStackStateProvider(Objects.requireNonNull(getTrace()));
-    }
-
-    @Override
-    public Iterable<TmfAbstractAnalysisRequirement> getAnalysisRequirements() {
-        return Collections.emptyList();
+    protected @NonNull ITmfStateProvider createStateProvider() {
+        return new RocmCallStackStateProvider(Objects.requireNonNull(getTrace()));
     }
 
     @Override
@@ -64,6 +51,18 @@ public class RocmCtfCallStackAnalysis extends InstrumentedCallStackAnalysis {
             return Collections.emptyList();
         }
         return ss.getSubAttributes(edgeQuark, false);
+    }
+
+    @Override
+    @VisibleForTesting
+    public File getSsFile() {
+        ITmfTrace trace = getTrace();
+        if (trace == null) {
+            return null;
+        }
+        String directory = TmfTraceManager.getSupplementaryFileDir(trace);
+        File htFile = new File(directory + getSsFileName());
+        return htFile;
     }
 
     /**
