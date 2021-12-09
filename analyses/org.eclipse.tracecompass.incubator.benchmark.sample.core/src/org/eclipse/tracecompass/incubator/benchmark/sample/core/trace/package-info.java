@@ -1,1 +1,0 @@
-package org.eclipse.tracecompass.incubator.benchmark.sample.core.trace;

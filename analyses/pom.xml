@@ -48,9 +48,6 @@
     <module>org.eclipse.tracecompass.incubator.rocm</module>
     <module>org.eclipse.tracecompass.incubator.rocm.core</module>
     <module>org.eclipse.tracecompass.incubator.rocm.core.tests</module>
-    <module>org.eclipse.tracecompass.incubator.benchmark.sample</module>
-    <module>org.eclipse.tracecompass.incubator.benchmark.sample.core</module>
-    <module>org.eclipse.tracecompass.incubator.benchmark.sample.core.tests</module>
     <!-- insert modules here -->
   </modules>
 
