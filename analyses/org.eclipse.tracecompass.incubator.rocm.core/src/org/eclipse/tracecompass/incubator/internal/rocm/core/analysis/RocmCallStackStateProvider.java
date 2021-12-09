@@ -47,7 +47,6 @@ public class RocmCallStackStateProvider extends AbstractTmfStateProvider {
 
         builder.put(RocmStrings.HIP_API, new ApiEventHandler(this));
         builder.put(RocmStrings.HSA_API, new ApiEventHandler(this));
-        builder.put(RocmStrings.KFD_API, new ApiEventHandler(this));
         builder.put(RocmStrings.HIP_ACTIVITY, new HipActivityEventHandler(this));
         builder.put(RocmStrings.ROCTX, new RoctxEventHandler(this));
         builder.put(RocmStrings.KERNEL_EVENT, new HsaKernelEventHandler(this));

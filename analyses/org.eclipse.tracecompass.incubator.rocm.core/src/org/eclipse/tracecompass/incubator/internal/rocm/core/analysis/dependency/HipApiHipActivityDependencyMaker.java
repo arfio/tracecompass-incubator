@@ -44,7 +44,7 @@ public class HipApiHipActivityDependencyMaker extends DependencyMaker {
     public void processEvent(ITmfEvent event, ITmfStateSystemBuilder ssb) {
         // Remove events that ended before this event
         removeInFlightEvents(event);
-        // The eventName is the API function name where the event type name is the API name (HIP/HSA/KFD)
+        // The eventName is the API function name where the event type name is the API name (HIP/HSA)
         String eventName;
         switch(event.getName()) {
         case RocmStrings.HIP_API:
@@ -156,15 +156,15 @@ public class HipApiHipActivityDependencyMaker extends DependencyMaker {
             ITmfEvent waitEvent = waitEventIterator.next();
             Long dependencyBeginTs = waitEvent.getTimestamp().getValue();
             Long dependencyEndTs = GpuEventHandler.getEndTime(waitEvent);
-            if (beginTs > dependencyBeginTs) {
-                // The wait event had already begun before the operation was queued.
-                // Therefore there is no dependency.
-                continue;
-            }
             if (beginTs > dependencyEndTs) {
                 // The wait event has finished without any other activity so
                 // there can be no wait dependency beyond this point.
                 waitEventIterator.remove();
+                continue;
+            }
+            if (beginTs > dependencyBeginTs) {
+                // The wait event had already begun before the operation was queued.
+                // Therefore there is no dependency.
                 continue;
             }
             if (beginTs < dependencyBeginTs && endTs > dependencyBeginTs) {

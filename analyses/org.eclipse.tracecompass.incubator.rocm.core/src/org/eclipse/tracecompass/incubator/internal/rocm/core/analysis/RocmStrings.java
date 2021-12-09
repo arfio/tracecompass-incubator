@@ -22,7 +22,6 @@ public interface RocmStrings {
     String GPU_KERNEL = "compute_kernels_hsa";
     String HSA_API = "hsa_api";
     String HIP_API = "hip_api";
-    String KFD_API = "kfd_api";
     String HCC_OPS = "hcc_ops";
     String ROCTX = "roctx";
     String ASYNC_COPY = "async_copy";

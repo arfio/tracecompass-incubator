@@ -51,7 +51,10 @@
     <module>org.eclipse.tracecompass.incubator.otf2.doc.user</module>
     <module>org.eclipse.tracecompass.incubator.gerrit.doc.user</module>
     <module>org.eclipse.tracecompass.incubator.system.doc.user</module>
+<<<<<<< HEAD
     <module>org.eclipse.tracecompass.incubator.inandout.doc.user</module>
+=======
+>>>>>>> rocm: remove sample project, update to 4.5.x
     <!-- insert modules here -->
   </modules>
 

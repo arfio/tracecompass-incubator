@@ -18,7 +18,6 @@ public class HostThreadIdentifier {
         fApiMap = new HashMap<>();
         fApiMap.put(RocmStrings.HIP_API, 1);
         fApiMap.put(RocmStrings.HSA_API, 2);
-        fApiMap.put(RocmStrings.KFD_API, 3);
     }
     public enum KERNEL_CATEGORY {
         QUEUE, STREAM
