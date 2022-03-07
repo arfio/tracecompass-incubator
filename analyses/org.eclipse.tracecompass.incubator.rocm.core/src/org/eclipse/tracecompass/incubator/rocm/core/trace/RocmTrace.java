@@ -29,7 +29,6 @@ import org.eclipse.tracecompass.tmf.ctf.core.context.CtfLocation;
 import org.eclipse.tracecompass.tmf.ctf.core.context.CtfLocationInfo;
 import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTmfTrace;
 import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTraceValidationStatus;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableList.Builder;
@@ -76,11 +75,28 @@ public class RocmTrace extends CtfTmfTrace {
         ImmutableList.Builder<ITmfEventAspect<?>> builder = new Builder<>();
         builder.add(GpuAspect.INSTANCE);
         builder.add(createApiFunctionAspect(this));
+        builder.addAll(createRocmAspects(this));
         builder.addAll(ROCM_CTF_ASPECTS);
         builder.addAll(createCounterAspects(this));
         fAspects = builder.build();
     }
 
+    private static Collection<ITmfEventAspect<?>> createRocmAspects(ITmfTraceWithPreDefinedEvents trace) {
+        ImmutableList.Builder<ITmfEventAspect<?>> builder = new Builder<>();
+
+        for (ITmfEventType eventType : trace.getContainedEventTypes()) {
+            if (eventType.getName().equals(RocmStrings.HSA_API)) {
+                builder.add(RocmAspects.getQueueIDAspect());
+                builder.add(RocmAspects.getQueueIndexAspect());
+            }
+            if (eventType.getName().equals(RocmStrings.HIP_API)) {
+                builder.add(RocmAspects.getStreamIDAspect());
+            }
+        }
+        builder.add(RocmAspects.getPIDAspect());
+        builder.add(RocmAspects.getTIDAspect());
+        return builder.build();
+    }
 
     private ITmfEventAspect<String> createApiFunctionAspect(ITmfTraceWithPreDefinedEvents trace) {
         ITmfContext context = seekEvent(new CtfLocation(new CtfLocationInfo(0L, 0L)));
@@ -101,6 +117,7 @@ public class RocmTrace extends CtfTmfTrace {
         }
         return ApiFunctionAspect.INSTANCE;
     }
+
     private Collection<ITmfEventAspect<?>> createCounterAspects(ITmfTraceWithPreDefinedEvents trace) {
         ImmutableSet.Builder<ITmfEventAspect<?>> perfBuilder = new ImmutableSet.Builder<>();
         ITmfContext context = seekEvent(new CtfLocation(new CtfLocationInfo(0L, 0L)));
@@ -154,13 +171,30 @@ public class RocmTrace extends CtfTmfTrace {
         IStatus status = super.validate(project, path);
         if (status instanceof CtfTraceValidationStatus) {
             Map<String, String> environment = ((CtfTraceValidationStatus) status).getEnvironment();
+            /* Make sure the domain is "kernel" in the trace's env vars */
             String domain = environment.get("tracer_name"); //$NON-NLS-1$
             if (domain == null || !domain.equals("\"rocprof\"")) { //$NON-NLS-1$
-                return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "This trace is not a rocm trace"); //$NON-NLS-1$
+                return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "This trace was not recognized as a ROCm trace. You can update your rocprofiler version or you can change manually the tracer name to \"rocprof\" in the metadata file to force the validation.");
             }
             return new TraceValidationStatus(CONFIDENCE, Activator.PLUGIN_ID);
         }
         return status;
+        /*IStatus status = super.validate(project, path);
+        if (status instanceof CtfTraceValidationStatus) {
+            String tracerName = CtfUtils.getTracerName(this);
+            int tracerMajor = CtfUtils.getTracerMajorVersion(this);
+            int tracerMinor = CtfUtils.getTracerMinorVersion(this);
+            if (tracerName != null && tracerName.equals("rocprof")) {
+                if (tracerMajor < 3) {
+                    return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "The tracer version is " + tracerMajor + "." + tracerMinor + " and this version of the ROCm plugin supports only tracer with versions > 3.0");
+                } else if (tracerMajor > 3) {
+                    return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "The ROCm plugin version needs to be updated to support this new version of rocprofiler.");
+                }
+                return new TraceValidationStatus(CONFIDENCE, Activator.PLUGIN_ID);
+            }
+            return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "This trace was not recognized as a ROCm trace. You can update your rocprofiler version or you can change manually the tracer name to \"rocprof\" in the metadata file to force the validation."); //$NON-NLS-1$
+        }
+        return status;*/
     }
 
     @Override

@@ -38,6 +38,7 @@ public interface RocmStrings {
     String CORRELATION_ID = "correlation_id";
     String DEVICE_ID = "device_id";
     String QUEUE_ID = "queue_id";
+    String QUEUE_INDEX = "queue_index";
     String STREAM_ID = "stream_id";
     String CID = "cid"; // Function call id, is used to identify the function name
     String TID = "tid";

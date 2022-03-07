@@ -54,7 +54,7 @@ public class HipApiHipActivityDependencyMaker extends DependencyMaker {
                 addGpuActivityDispatch(event, 7);
             }
             // Memory Copy dispatch
-            else if (eventName.startsWith("hipMemcpy")) {
+            else if (eventName.equals("hipMemcpy")) {
                 addGpuActivityDispatch(event, 4);
             }
             // Wait Api Events

@@ -2,6 +2,7 @@ package org.eclipse.tracecompass.incubator.rocm.core.trace;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
 
@@ -30,7 +31,18 @@ public class ApiFunctionAspect implements ITmfEventAspect<String> {
 
     @Override
     public @Nullable String resolve(@NonNull ITmfEvent event) {
-        return fApiFunctionMap.getEventName(event);
+        if (event.getName().equals(RocmStrings.HIP_API) || event.getName().equals(RocmStrings.HSA_API)) {
+            return fApiFunctionMap.getEventName(event);
+        }
+        return event.getContent().getFieldValue(String.class, RocmStrings.NAME);
+    }
+
+    public @NonNull Integer getFunctionIDFromApiAndCid(String api, Integer cid) {
+        return fApiFunctionMap.getFunctionIDFromApiAndCid(api, cid);
+    }
+
+    public @NonNull String getFunctionNameFromFunctionID(Integer functionID) {
+        return fApiFunctionMap.getEventNameFromFunctionID(functionID);
     }
 
 }

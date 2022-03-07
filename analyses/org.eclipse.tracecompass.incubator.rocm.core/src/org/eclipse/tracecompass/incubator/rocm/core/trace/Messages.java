@@ -3,6 +3,7 @@ package org.eclipse.tracecompass.incubator.rocm.core.trace;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.osgi.util.NLS;
 
+@org.eclipse.jdt.annotation.NonNullByDefault
 public class Messages extends NLS {
     private static final String BUNDLE_NAME = "org.eclipse.tracecompass.incubator.rocm.core.trace.messages"; //$NON-NLS-1$
 
@@ -13,6 +14,16 @@ public class Messages extends NLS {
     public static @Nullable String AspectName_ApiFunction;
 
     public static @Nullable String AspectHelpText_ApiFunction;
+
+    public static @Nullable String AspectName_PID;
+
+    public static @Nullable String AspectName_TID;
+
+    public static @Nullable String AspectName_QueueID;
+
+    public static @Nullable String AspectName_StreamID;
+
+    public static @Nullable String AspectName_QueueIndex;
 
     /**
      * Nanosecond normalized timestamp

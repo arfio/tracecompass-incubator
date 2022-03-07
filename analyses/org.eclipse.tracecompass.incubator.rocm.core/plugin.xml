@@ -62,4 +62,12 @@
          </tracetype>
       </module>
    </extension>
+      <extension
+         point="org.eclipse.tracecompass.tmf.core.symbolProvider">
+      <providerFactory
+            class="org.eclipse.tracecompass.incubator.rocm.core.trace.RocmTraceSymbolProviderFactory"
+            id="org.eclipse.tracecompass.incubator.rocm.core.trace.providerfactory"
+            priority="56">
+      </providerFactory>
+   </extension>
 </plugin>

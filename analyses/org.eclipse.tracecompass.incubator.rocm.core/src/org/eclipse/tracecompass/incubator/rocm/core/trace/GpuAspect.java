@@ -37,6 +37,9 @@ public final class GpuAspect extends TmfDeviceAspect {
         ITmfEventField content = event.getContent();
         if (content != null) {
             Integer fieldValue = content.getFieldValue(Integer.class, RocmStrings.DEVICE_ID);
+            if (fieldValue == null) {
+                fieldValue = content.getFieldValue(Integer.class, RocmStrings.GPU_ID);
+            }
             return fieldValue == null ? null : fieldValue.intValue();
         }
         return null;
