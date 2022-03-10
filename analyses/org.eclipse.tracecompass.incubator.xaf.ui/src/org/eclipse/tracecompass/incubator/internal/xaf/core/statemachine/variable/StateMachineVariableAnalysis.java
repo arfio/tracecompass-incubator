@@ -31,10 +31,10 @@ import java.util.TreeSet;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.analysis.graph.core.base.IGraphWorker;
-import org.eclipse.tracecompass.analysis.graph.core.base.TmfEdge;
-import org.eclipse.tracecompass.analysis.graph.core.base.TmfGraph;
-import org.eclipse.tracecompass.analysis.graph.core.base.TmfVertex;
 import org.eclipse.tracecompass.analysis.graph.core.criticalpath.CriticalPathAlgorithmException;
+import org.eclipse.tracecompass.analysis.graph.core.graph.ITmfEdge;
+import org.eclipse.tracecompass.analysis.graph.core.graph.ITmfGraph;
+import org.eclipse.tracecompass.analysis.graph.core.graph.ITmfVertex;
 import org.eclipse.tracecompass.analysis.os.linux.core.execution.graph.OsExecutionGraph;
 import org.eclipse.tracecompass.analysis.os.linux.core.execution.graph.OsWorker;
 import org.eclipse.tracecompass.analysis.os.linux.core.kernel.KernelAnalysisModule;
@@ -70,7 +70,8 @@ import org.eclipse.tracecompass.incubator.internal.xaf.ui.statemachine.StateMach
 import org.eclipse.tracecompass.incubator.internal.xaf.ui.statemachine.StateMachineSegment;
 import org.eclipse.tracecompass.incubator.internal.xaf.ui.statemachine.StateMachineUtils.TimestampInterval;
 import org.eclipse.tracecompass.internal.analysis.graph.core.base.TmfGraphVisitor;
-import org.eclipse.tracecompass.internal.analysis.graph.core.criticalpath.CriticalPathAlgorithmBounded;
+import org.eclipse.tracecompass.internal.analysis.graph.core.criticalpath.OSCriticalPathAlgorithm;
+import org.eclipse.tracecompass.internal.analysis.graph.core.graph.legacy.TmfGraphLegacyWrapper;
 import org.eclipse.tracecompass.internal.segmentstore.core.treemap.TreeMapStore;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegmentStore;
@@ -1284,7 +1285,7 @@ public class StateMachineVariableAnalysis {
             g.waitForCompletion();
 
             // Get the general graph for the trace
-            TmfGraph graph = g.getGraph();
+            ITmfGraph graph = g.getTmfGraph();
             if (graph == null) {
                 System.out.println("graph == null"); //$NON-NLS-1$
                 continue;
@@ -1310,14 +1311,14 @@ public class StateMachineVariableAnalysis {
             workerFound = true;
 
             // Compute the path for the period we're interested into
-            TmfVertex vstart = graph.getVertexAt(Objects.requireNonNull(ti.getStartTime()), lw);
-            TmfVertex vend = graph.getVertexAt(Objects.requireNonNull(ti.getEndTime()), lw);
-            TmfGraph path = new CriticalPathAlgorithmBounded(graph).compute(Objects.requireNonNull(vstart), Objects.requireNonNull(vend));
+            ITmfVertex vstart = graph.getVertexAt(Objects.requireNonNull(ti.getStartTime()), lw);
+            ITmfVertex vend = graph.getVertexAt(Objects.requireNonNull(ti.getEndTime()), lw);
+            ITmfGraph path = new OSCriticalPathAlgorithm(graph).computeCriticalPath(new TmfGraphLegacyWrapper(), Objects.requireNonNull(vstart), Objects.requireNonNull(vend));
 
             // Then traverse that path to get the data for what happened in there
             path.scanLineTraverse(path.getHead(lw), new TmfGraphVisitor() {
                 @Override
-                public void visit(TmfEdge link, boolean horizontal) {
+                public void visit(ITmfEdge link, boolean horizontal) {
                     if (!horizontal) {
                         return;
                     }
@@ -1328,8 +1329,8 @@ public class StateMachineVariableAnalysis {
                     }
                     OsWorker llw = (OsWorker)w;
 
-                    ITmfTimestamp tsStart = TmfTimestamp.create(link.getVertexFrom().getTs(), ITmfTimestamp.NANOSECOND_SCALE);
-                    ITmfTimestamp tsEnd = TmfTimestamp.create(link.getVertexTo().getTs(), ITmfTimestamp.NANOSECOND_SCALE);
+                    ITmfTimestamp tsStart = TmfTimestamp.create(link.getVertexFrom().getTimestamp(), ITmfTimestamp.NANOSECOND_SCALE);
+                    ITmfTimestamp tsEnd = TmfTimestamp.create(link.getVertexTo().getTimestamp(), ITmfTimestamp.NANOSECOND_SCALE);
 
                     // Change the worker name to the actual process name if available
                     for (StateMachineBackendAnalysis smssa : isi.instance.getStateMachineInstanceGroup().getStateMachineBackendAnalysisModules()) {
@@ -1378,7 +1379,7 @@ public class StateMachineVariableAnalysis {
                             new TmfTimestamp(link.getVertexFrom().getTs(), ITmfTimestamp.NANOSECOND_SCALE).toString(),
                             new TmfTimestamp(link.getVertexTo().getTs(), ITmfTimestamp.NANOSECOND_SCALE).toString());*/
 
-                    InterruptionReason ir = new CriticalPathState(link.getType(), llw);
+                    InterruptionReason ir = new CriticalPathState(link.getEdgeContextState(), llw);
                     TimestampInterval tsInterval = new TimestampInterval(tsStart, tsEnd);
                     criticalPathSteps.add(new InterruptionDuration(ir, link.getDuration(), tsInterval));
                 }

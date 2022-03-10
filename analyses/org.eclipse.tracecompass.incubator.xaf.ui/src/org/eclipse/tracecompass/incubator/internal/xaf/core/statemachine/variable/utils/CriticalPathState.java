@@ -14,6 +14,7 @@ package org.eclipse.tracecompass.incubator.internal.xaf.core.statemachine.variab
 import java.util.Objects;
 
 import org.eclipse.tracecompass.analysis.graph.core.base.TmfEdge;
+import org.eclipse.tracecompass.analysis.graph.core.graph.ITmfEdgeContextState;
 import org.eclipse.tracecompass.analysis.os.linux.core.execution.graph.OsWorker;
 
 /**
@@ -23,6 +24,7 @@ import org.eclipse.tracecompass.analysis.os.linux.core.execution.graph.OsWorker;
  */
 public class CriticalPathState extends InterruptionReason {
     private TmfEdge.EdgeType type;
+    private ITmfEdgeContextState contextState;
     private OsWorker worker;
 
     /**
@@ -31,16 +33,27 @@ public class CriticalPathState extends InterruptionReason {
      * @param worker
      *            The worker related to the critical path state
      */
+    @Deprecated
     public CriticalPathState(TmfEdge.EdgeType type, OsWorker worker) {
         this.type = type;
+        this.worker = worker;
+    }
+
+    public CriticalPathState(ITmfEdgeContextState contextState, OsWorker worker) {
+        this.contextState = contextState;
         this.worker = worker;
     }
 
     /**
      * @return The edge type of the critical path state
      */
+    @Deprecated
     public TmfEdge.EdgeType getType() {
         return type;
+    }
+
+    public ITmfEdgeContextState getContextState() {
+        return contextState;
     }
 
     /**
@@ -54,7 +67,7 @@ public class CriticalPathState extends InterruptionReason {
     public String getID() {
         // String id = worker.getName() + " (tid " +
         // worker.getHostThread().getTid() + ") " + type.name();
-        return String.format("%s %s", worker.getName(), type.name()); //$NON-NLS-1$
+        return String.format("%s %s", worker.getName(), contextState.getContextEnum().name()); //$NON-NLS-1$
     }
 
     @Override
@@ -91,13 +104,13 @@ public class CriticalPathState extends InterruptionReason {
     public int compareTo(InterruptionReason ir) {
         if (ir instanceof CriticalPathState) {
             CriticalPathState cps = (CriticalPathState) ir;
-            if (type == null) {
-                if (cps.type == null) {
+            if (contextState == null) {
+                if (cps.contextState == null) {
                     return 0;
                 }
                 return -1;
             }
-            int cmp = type.compareTo(Objects.requireNonNull(cps.type));
+            int cmp = contextState.getContextEnum().name().compareTo(Objects.requireNonNull(cps.contextState.getContextEnum().name()));
             if (cmp == 0) {
                 if (worker == null) {
                     if (cps.worker == null) {

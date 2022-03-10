@@ -19,7 +19,7 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.analysis.graph.core.base.TmfEdge.EdgeType;
 import org.eclipse.tracecompass.incubator.analysis.core.weighted.tree.IDataPalette;
 import org.eclipse.tracecompass.incubator.analysis.core.weighted.tree.WeightedTree;
-import org.eclipse.tracecompass.internal.analysis.graph.core.base.CriticalPathPalette;
+import org.eclipse.tracecompass.internal.analysis.graph.core.base.OSCriticalPathPalette;
 import org.eclipse.tracecompass.tmf.core.dataprovider.X11ColorUtils;
 import org.eclipse.tracecompass.tmf.core.model.OutputElementStyle;
 import org.eclipse.tracecompass.tmf.core.model.StyleProperties;
@@ -47,7 +47,7 @@ public class CriticalPathAggregatedPalette implements IDataPalette {
 
     static {
         ImmutableMap.Builder<String, OutputElementStyle> builder = new ImmutableMap.Builder<>();
-        builder.putAll(CriticalPathPalette.getStyles());
+        builder.putAll(OSCriticalPathPalette.getStyles());
         IPaletteProvider palette = new QualitativePaletteProvider.Builder().setNbColors(NUM_COLORS).build();
         int i = 0;
         for (RGBAColor color : palette.get()) {

@@ -16,7 +16,7 @@ import java.util.Objects;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.analysis.graph.core.criticalpath.CriticalPathModule;
+import org.eclipse.tracecompass.analysis.graph.core.criticalpath.OSCriticalPathModule;
 import org.eclipse.tracecompass.incubator.analysis.core.weighted.tree.IDataPalette;
 import org.eclipse.tracecompass.incubator.analysis.core.weighted.tree.IWeightedTreeProvider;
 import org.eclipse.tracecompass.incubator.analysis.core.weighted.tree.IWeightedTreeSet;
@@ -41,12 +41,12 @@ public class CriticalPathAggregatedModule extends TmfAbstractAnalysisModule impl
 
     private static final MetricType DURATION_METRIC = new MetricType(Objects.requireNonNull(TmfStrings.duration()), DataType.NANOSECONDS, null);
 
-    private @Nullable CriticalPathModule fModule = null;
+    private @Nullable OSCriticalPathModule fModule = null;
     private @Nullable CriticalPathWeighted fCritPathCg = null;
 
     @Override
     protected boolean executeAnalysis(IProgressMonitor monitor) throws TmfAnalysisException {
-        CriticalPathModule module = fModule;
+        OSCriticalPathModule module = fModule;
         if (module == null) {
             return false;
         }
@@ -68,8 +68,8 @@ public class CriticalPathAggregatedModule extends TmfAbstractAnalysisModule impl
     @TmfSignalHandler
     public void analysisStarted(TmfStartAnalysisSignal signal) {
         IAnalysisModule analysis = signal.getAnalysisModule();
-        if (analysis instanceof CriticalPathModule) {
-            CriticalPathModule criticalPath = (CriticalPathModule) analysis;
+        if (analysis instanceof OSCriticalPathModule) {
+            OSCriticalPathModule criticalPath = (OSCriticalPathModule) analysis;
             Collection<ITmfTrace> traces = TmfTraceManager.getTraceSetWithExperiment(getTrace());
             if (traces.contains(criticalPath.getTrace())) {
                 cancel();
@@ -102,7 +102,7 @@ public class CriticalPathAggregatedModule extends TmfAbstractAnalysisModule impl
         if (critPathCg != null) {
             return critPathCg;
         }
-        CriticalPathModule module = fModule;
+        OSCriticalPathModule module = fModule;
         if (module == null) {
             return CriticalPathWeighted.create(null);
         }
