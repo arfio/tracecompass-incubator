@@ -1,16 +1,21 @@
 package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.handlers;
 
+import java.util.Collection;
+
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.CallStackStateProvider;
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.InstrumentedCallStackAnalysis;
 import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmCallStackStateProvider;
+import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmFunctionNameStateProvider;
 import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmStrings;
-import org.eclipse.tracecompass.incubator.rocm.core.trace.ApiFunctionAspect;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider.FutureEventType;
-import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
+import org.eclipse.tracecompass.tmf.core.symbols.ISymbolProvider;
+import org.eclipse.tracecompass.tmf.core.symbols.SymbolProviderManager;
+import org.eclipse.tracecompass.tmf.core.symbols.SymbolProviderUtils;
 import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTmfTrace;
 
 /**
@@ -38,9 +43,7 @@ public class ApiEventHandler extends GpuEventHandler {
         // Retrieve event information
         ITmfEventField content = event.getContent();
         Long timestamp = event.getTimestamp().toNanos();
-        String apiName = event.getName().substring(0, event.getName().indexOf('_'));
-        Integer cid = event.getContent().getFieldValue(Integer.class, RocmStrings.CID);
-        Integer functionID = ApiFunctionAspect.INSTANCE.getFunctionIDFromApiAndCid(apiName, cid);
+        Integer functionID = RocmFunctionNameStateProvider.getFunctionId(event);
 
         // Push the api function name to the call stack quark
         ssb.pushAttribute(timestamp, functionID, callStackQuark);
@@ -56,7 +59,7 @@ public class ApiEventHandler extends GpuEventHandler {
         if (tid == null) {
             return;
         }
-        HostThreadIdentifier hostThreadIdentifier = new HostThreadIdentifier(event.getName(), tid);
+        HostThreadIdentifier hostThreadIdentifier = new HostThreadIdentifier(event, tid);
         addHostIdToStateSystemIfNotDefined(ssb, event.getTrace(), hostThreadIdentifier, callStackQuark);
     }
 
@@ -107,12 +110,9 @@ public class ApiEventHandler extends GpuEventHandler {
     }
 
     public static String getFunctionApiName(ITmfEvent event) {
-        Object apiFunctionAspect = TmfTraceUtils.resolveEventAspectOfClassForEvent(event.getTrace(), ApiFunctionAspect.class, event);
-        if (apiFunctionAspect == null) {
-            // Api function not found, ignore this event.
-            return RocmStrings.EMPTY_STRING;
-        }
-        return (String) apiFunctionAspect;
+        Collection<@NonNull ISymbolProvider> providers = SymbolProviderManager.getInstance().getSymbolProviders(event.getTrace());
+        String name = SymbolProviderUtils.getSymbolText(providers, RocmFunctionNameStateProvider.getFunctionId(event));
+        return name;
     }
 
 }

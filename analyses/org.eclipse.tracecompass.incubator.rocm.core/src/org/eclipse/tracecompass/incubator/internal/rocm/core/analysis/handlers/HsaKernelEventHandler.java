@@ -8,6 +8,7 @@ import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.handlers.H
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.ctf.core.trace.CtfTmfTrace;
 
 public class HsaKernelEventHandler extends GpuEventHandler {
 
@@ -42,8 +43,9 @@ public class HsaKernelEventHandler extends GpuEventHandler {
             }
         }*/
 
-        Long timestampEnd = GpuEventHandler.getEndTime(event);
+        Long timestampEnd = event.getContent().getFieldValue(Long.class, "complete_time");
         if (timestampEnd != null) {
+            timestampEnd = ((CtfTmfTrace) event.getTrace()).timestampCyclesToNanos(timestampEnd);
             pushParallelActivityOnCallStack(ssb, callStackQuark, kernelName, timestamp, timestampEnd);
         }
         // Add Host Thread Identifier for dependency arrows

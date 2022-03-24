@@ -1,11 +1,10 @@
 package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.handlers;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmStrings;
+import org.eclipse.tracecompass.incubator.rocm.core.trace.RocmTrace;
+import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 
 /**
  * @author Arnaud Fiorini
@@ -13,12 +12,6 @@ import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmString
  * This class is used to identify the correct lane when defining dependencies.
  */
 public class HostThreadIdentifier {
-    private static final Map<String, Integer> fApiMap;
-    static {
-        fApiMap = new HashMap<>();
-        fApiMap.put(RocmStrings.HIP_API, 1);
-        fApiMap.put(RocmStrings.HSA_API, 2);
-    }
     public enum KERNEL_CATEGORY {
         QUEUE, STREAM
     }
@@ -61,11 +54,11 @@ public class HostThreadIdentifier {
     /**
      * Constructor for API events
      *
-     * @param apiType
+     * @param event
      * @param tid
      */
-    public HostThreadIdentifier(String apiType, int tid) {
-        this(fApiMap.getOrDefault(apiType, -1), tid, ROCM_CATEGORY.SYSTEM.ordinal());
+    public HostThreadIdentifier(ITmfEvent event, int tid) {
+        this(((RocmTrace) event.getTrace()).getApiId(event.getName()), tid, ROCM_CATEGORY.SYSTEM.ordinal());
     }
 
     @Override

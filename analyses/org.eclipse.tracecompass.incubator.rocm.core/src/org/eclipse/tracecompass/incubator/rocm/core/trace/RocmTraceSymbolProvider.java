@@ -1,11 +1,19 @@
 package org.eclipse.tracecompass.incubator.rocm.core.trace;
 
+import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.incubator.internal.rocm.core.Activator;
+import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmFunctionNameAnalysis;
+import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmFunctionNameStateProvider;
+import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
+import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
+import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.tmf.core.symbols.ISymbolProvider;
 import org.eclipse.tracecompass.tmf.core.symbols.TmfResolvedSymbol;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 
 public class RocmTraceSymbolProvider implements ISymbolProvider {
 
@@ -33,7 +41,33 @@ public class RocmTraceSymbolProvider implements ISymbolProvider {
 
     @Override
     public @Nullable TmfResolvedSymbol getSymbol(long address) {
-        return new TmfResolvedSymbol(address, ApiFunctionAspect.INSTANCE.getFunctionNameFromFunctionID((int) address));
+        RocmFunctionNameAnalysis module = TmfTraceUtils.getAnalysisModuleOfClass(getTrace(),
+                RocmFunctionNameAnalysis.class, RocmFunctionNameAnalysis.ID);
+        if (module == null) {
+            /*
+             * The analysis is not available for this trace, we won't be able to
+             * find the information.
+             */
+            return new TmfResolvedSymbol(address, StringUtils.EMPTY);
+        }
+        ITmfStateSystem ss = module.getStateSystem();
+        if (ss == null) {
+            return new TmfResolvedSymbol(address, StringUtils.EMPTY);
+        }
+        String functionName = StringUtils.EMPTY;
+        try {
+            RocmTrace trace = (RocmTrace) getTrace();
+            int nApi = trace.getNApi();
+            Integer apiId = (int) (address % nApi);
+            int cid = (int) ((address - apiId) / nApi);
+            int functionNameQuark = ss.getQuarkAbsolute(RocmFunctionNameStateProvider.FUNCTION_NAMES);
+            int apiQuark = ss.getQuarkRelative(functionNameQuark, apiId.toString());
+            functionName = ss.querySingleState(ss.getStartTime() + cid, apiQuark).getValueString();
+        } catch (AttributeNotFoundException | StateSystemDisposedException e) {
+            Activator.getInstance().logError(e.getMessage());
+            return new TmfResolvedSymbol(address, StringUtils.EMPTY);
+        }
+        return new TmfResolvedSymbol(address, functionName);
     }
 
     @Override

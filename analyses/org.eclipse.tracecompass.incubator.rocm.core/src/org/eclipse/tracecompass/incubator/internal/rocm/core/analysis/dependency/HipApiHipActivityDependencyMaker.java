@@ -103,7 +103,7 @@ public class HipApiHipActivityDependencyMaker extends DependencyMaker {
                 return;
             }
             int hipStreamId = Integer.parseInt(ApiEventHandler.getArg(hipEvent.getContent(), 4));
-            HostThreadIdentifier srcHostThreadIdentifier = new HostThreadIdentifier(RocmStrings.HIP_API, tid);
+            HostThreadIdentifier srcHostThreadIdentifier = new HostThreadIdentifier(hipEvent, tid);
             HostThreadIdentifier dstStreamHostThreadIdentifier = new HostThreadIdentifier(hipStreamId, KERNEL_CATEGORY.STREAM, gpuId.intValue());
             HostThreadIdentifier dstQueueHostThreadIdentifier = new HostThreadIdentifier(queueId.intValue(), KERNEL_CATEGORY.QUEUE, gpuId.intValue());
             // HostThreads
@@ -135,7 +135,7 @@ public class HipApiHipActivityDependencyMaker extends DependencyMaker {
         if (tid == null) {
             return;
         }
-        HostThreadIdentifier srcHostThreadIdentifier = new HostThreadIdentifier(RocmStrings.HIP_API, tid);
+        HostThreadIdentifier srcHostThreadIdentifier = new HostThreadIdentifier(hipEvent, tid);
         HostThreadIdentifier dstHostThreadIdentifier = new HostThreadIdentifier();
         // HostThreads
         HostThread src = new HostThread(hipEvent.getTrace().getHostId(), srcHostThreadIdentifier.hashCode());
@@ -209,7 +209,7 @@ public class HipApiHipActivityDependencyMaker extends DependencyMaker {
         if (queueId == null) {
             return;
         }
-        HostThreadIdentifier srcHostThreadIdentifier = new HostThreadIdentifier(RocmStrings.HIP_API, waitTid);
+        HostThreadIdentifier srcHostThreadIdentifier = new HostThreadIdentifier(waitEvent, waitTid);
         HostThreadIdentifier dstStreamHostThreadIdentifier = new HostThreadIdentifier(hipStreamId, KERNEL_CATEGORY.STREAM, deviceId);
         HostThreadIdentifier dstQueueHostThreadIdentifier = new HostThreadIdentifier(queueId, KERNEL_CATEGORY.QUEUE, deviceId);
         // HostThreads

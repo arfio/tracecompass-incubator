@@ -28,6 +28,8 @@ public interface RocmStrings {
     String HIP_ACTIVITY = "hip_activity";
     String HSA_ACTIVITY = "hsa_activity";
     String KERNEL_EVENT = "kernel_event";
+    String HIP_FUNCTION_NAME = "hip_function_name";
+    String HSA_FUNCTION_NAME = "hsa_function_name";
 
     /* Field names */
     String NAME = "name";

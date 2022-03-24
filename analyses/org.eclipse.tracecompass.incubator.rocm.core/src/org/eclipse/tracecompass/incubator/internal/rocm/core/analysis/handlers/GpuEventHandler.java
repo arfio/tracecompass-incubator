@@ -74,6 +74,10 @@ public abstract class GpuEventHandler {
         try {
             int depth = 1;
             int subQuark = ssb.getQuarkRelativeAndAdd(callStackQuark, String.valueOf(depth));
+            if (ts < ssb.getStartTime()) {
+                // do nothing
+                return;
+            }
             // While there is already activity on the quark
             while (ssb.querySingleState(ts, subQuark).getValue() != null) {
                 depth += 1;

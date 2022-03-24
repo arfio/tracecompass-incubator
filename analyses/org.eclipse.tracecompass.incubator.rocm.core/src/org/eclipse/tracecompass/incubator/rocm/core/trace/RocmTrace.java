@@ -2,6 +2,7 @@ package org.eclipse.tracecompass.incubator.rocm.core.trace;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,6 +56,9 @@ public class RocmTrace extends CtfTmfTrace {
      */
     private static final int REDUCTION_FACTOR = 4096;
 
+    /** Api type mapped to integer ids */
+    private Map<String, Integer> fApiMap;
+
     /**
      * Constructor
      */
@@ -72,13 +76,31 @@ public class RocmTrace extends CtfTmfTrace {
             final Class<? extends ITmfEvent> eventType) throws TmfTraceException {
         super.initTrace(resource, path, eventType);
 
+        initializeApiMap();
+
         ImmutableList.Builder<ITmfEventAspect<?>> builder = new Builder<>();
         builder.add(GpuAspect.INSTANCE);
-        builder.add(createApiFunctionAspect(this));
         builder.addAll(createRocmAspects(this));
         builder.addAll(ROCM_CTF_ASPECTS);
         builder.addAll(createCounterAspects(this));
         fAspects = builder.build();
+    }
+
+    public int getApiId(String apiName) {
+        return fApiMap.getOrDefault(apiName, -1);
+    }
+
+    public int getNApi() {
+        return fApiMap.size();
+    }
+
+    private void initializeApiMap() {
+        fApiMap = new HashMap<>();
+        for (ITmfEventType eventType : getContainedEventTypes()) {
+            if (eventType.getName().endsWith("_api")) {
+                fApiMap.put(eventType.getName(), fApiMap.size());
+            }
+        }
     }
 
     private static Collection<ITmfEventAspect<?>> createRocmAspects(ITmfTraceWithPreDefinedEvents trace) {
@@ -96,26 +118,6 @@ public class RocmTrace extends CtfTmfTrace {
         builder.add(RocmAspects.getPIDAspect());
         builder.add(RocmAspects.getTIDAspect());
         return builder.build();
-    }
-
-    private ITmfEventAspect<String> createApiFunctionAspect(ITmfTraceWithPreDefinedEvents trace) {
-        ITmfContext context = seekEvent(new CtfLocation(new CtfLocationInfo(0L, 0L)));
-        for (ITmfEventType eventType : trace.getContainedEventTypes()) {
-            if (eventType.getName().endsWith("_api")) { //$NON-NLS-1$
-                while (true) {
-                    ITmfEvent event = getNext(context);
-                    if (event == null) {
-                        continue;
-                    }
-                    ApiFunctionAspect.INSTANCE.addFunctionDeclaration(event);
-                    if (!event.getName().endsWith("_name")) { //$NON-NLS-1$
-                        break;
-                    }
-                }
-                break;
-            }
-        }
-        return ApiFunctionAspect.INSTANCE;
     }
 
     private Collection<ITmfEventAspect<?>> createCounterAspects(ITmfTraceWithPreDefinedEvents trace) {
@@ -149,7 +151,7 @@ public class RocmTrace extends CtfTmfTrace {
         ));
         for (String fieldName: event.getContent().getFieldNames()) {
             if (blacklistFields.contains(fieldName) == false) {
-                builder.add(new RocmCtfCounterAspect(fieldName, fieldName, GpuAspect.class));
+                builder.add(new RocmCounterAspect(fieldName, fieldName, GpuAspect.class));
             }
         }
     }
