@@ -25,6 +25,8 @@ public class Messages extends NLS {
 
     public static @Nullable String AspectName_QueueIndex;
 
+    public static @Nullable String AspectName_FunctionName;
+
     /**
      * Nanosecond normalized timestamp
      * @since 6.2

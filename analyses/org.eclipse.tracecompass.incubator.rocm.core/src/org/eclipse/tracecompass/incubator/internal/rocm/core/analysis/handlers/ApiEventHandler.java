@@ -2,11 +2,12 @@ package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.handlers;
 
 import java.util.Collection;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.CallStackStateProvider;
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.InstrumentedCallStackAnalysis;
 import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmCallStackStateProvider;
-import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmFunctionNameStateProvider;
+import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmMetadataStateProvider;
 import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmStrings;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
@@ -43,7 +44,7 @@ public class ApiEventHandler extends GpuEventHandler {
         // Retrieve event information
         ITmfEventField content = event.getContent();
         Long timestamp = event.getTimestamp().toNanos();
-        Integer functionID = RocmFunctionNameStateProvider.getFunctionId(event);
+        Integer functionID = RocmMetadataStateProvider.getFunctionId(event);
 
         // Push the api function name to the call stack quark
         ssb.pushAttribute(timestamp, functionID, callStackQuark);
@@ -77,7 +78,7 @@ public class ApiEventHandler extends GpuEventHandler {
     public static String getArg(ITmfEventField content, int argPosition) {
         String args = content.getFieldValue(String.class, RocmStrings.ARGS);
         if (args == null) {
-            return RocmStrings.EMPTY_STRING;
+            return StringUtils.EMPTY;
         }
         int currentIndex = 0, argIndex = -1, currentPosition = 0;
         int depth = 0; // '(' increases depth, ')' decreases it
@@ -106,12 +107,12 @@ public class ApiEventHandler extends GpuEventHandler {
         if (argIndex >= 0) {
             return args.substring(argIndex, currentIndex).strip();
         }
-        return RocmStrings.EMPTY_STRING;
+        return StringUtils.EMPTY;
     }
 
     public static String getFunctionApiName(ITmfEvent event) {
         Collection<@NonNull ISymbolProvider> providers = SymbolProviderManager.getInstance().getSymbolProviders(event.getTrace());
-        String name = SymbolProviderUtils.getSymbolText(providers, RocmFunctionNameStateProvider.getFunctionId(event));
+        String name = SymbolProviderUtils.getSymbolText(providers, RocmMetadataStateProvider.getFunctionId(event));
         return name;
     }
 

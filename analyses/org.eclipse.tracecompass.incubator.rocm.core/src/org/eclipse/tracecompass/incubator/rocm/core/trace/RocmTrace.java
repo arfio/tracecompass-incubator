@@ -117,6 +117,7 @@ public class RocmTrace extends CtfTmfTrace {
         }
         builder.add(RocmAspects.getPIDAspect());
         builder.add(RocmAspects.getTIDAspect());
+        builder.add(RocmAspects.getFunctionNameAspect());
         return builder.build();
     }
 
@@ -136,7 +137,6 @@ public class RocmTrace extends CtfTmfTrace {
                 break;
             }
         }
-
 
         return perfBuilder.build();
     }

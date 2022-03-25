@@ -2,6 +2,7 @@ package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.handlers;
 
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.CallStackStateProvider;
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.InstrumentedCallStackAnalysis;
@@ -111,7 +112,7 @@ public class HipActivityEventHandler extends GpuEventHandler {
             return callStackQuark;
         }
         int copyQuark = ssb.getQuarkAbsoluteAndAdd(CallStackStateProvider.PROCESSES, RocmStrings.MEMORY);
-        int tempQuark1 = ssb.getQuarkRelativeAndAdd(copyQuark, RocmStrings.EMPTY_STRING);
+        int tempQuark1 = ssb.getQuarkRelativeAndAdd(copyQuark, StringUtils.EMPTY);
         int tempQuark2 = ssb.getQuarkRelativeAndAdd(tempQuark1, RocmStrings.MEMORY_TRANSFERS);
         int callStackQuark = ssb.getQuarkRelativeAndAdd(tempQuark2, InstrumentedCallStackAnalysis.CALL_STACK);
         return callStackQuark;

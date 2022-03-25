@@ -4,7 +4,7 @@
    <extension 
    		point="org.eclipse.linuxtools.tmf.core.analysis">
       <module
-            analysis_module="org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmFunctionNameAnalysis"
+            analysis_module="org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmMetadataAnalysis"
             automatic="true"
             id="org.eclipse.tracecompass.incubator.rocm.core.analysis.functionname"
             name="ROCm Function Name Analysis">
@@ -23,7 +23,7 @@
             id="org.eclipse.tracecompass.analysis.counters.core.counteranalysis"
             name="Counters">
             <tracetype
-               class="org.eclipse.tracecompass.incubator.rocm.core.trace.RocmCtfTrace">
+               class="org.eclipse.tracecompass.incubator.rocm.core.trace.RocmTrace">
             </tracetype>
       </module>
    </extension>

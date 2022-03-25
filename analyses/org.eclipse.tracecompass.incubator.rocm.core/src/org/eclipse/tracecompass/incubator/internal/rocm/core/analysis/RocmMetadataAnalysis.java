@@ -11,7 +11,7 @@ import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 import com.google.common.collect.ImmutableSet;
 
-public class RocmFunctionNameAnalysis extends TmfStateSystemAnalysisModule {
+public class RocmMetadataAnalysis extends TmfStateSystemAnalysisModule {
 
     public static final String ID = "org.eclipse.tracecompass.incubator.rocm.core.analysis.functionname"; //$NON-NLS-1$
 
@@ -19,7 +19,7 @@ public class RocmFunctionNameAnalysis extends TmfStateSystemAnalysisModule {
 
     @Override
     protected @NonNull ITmfStateProvider createStateProvider() {
-        return new RocmFunctionNameStateProvider(Objects.requireNonNull(getTrace()));
+        return new RocmMetadataStateProvider(Objects.requireNonNull(getTrace()));
     }
 
     @Override

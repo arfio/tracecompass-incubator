@@ -8,13 +8,13 @@ import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 
-public class RocmFunctionNameStateProvider extends AbstractTmfStateProvider {
+public class RocmMetadataStateProvider extends AbstractTmfStateProvider {
 
     private static final String ID = "org.eclipse.tracecompass.incubator.rocm.core.stateprovider.functionname"; //$NON-NLS-1$
 
     public static final String FUNCTION_NAMES = "Function Names";
 
-    public RocmFunctionNameStateProvider(@NonNull ITmfTrace trace) {
+    public RocmMetadataStateProvider(@NonNull ITmfTrace trace) {
         super(trace, ID);
     }
 
@@ -30,7 +30,7 @@ public class RocmFunctionNameStateProvider extends AbstractTmfStateProvider {
 
     @Override
     protected void eventHandle(@NonNull ITmfEvent event) {
-        if (event.getName().equals(RocmStrings.HIP_FUNCTION_NAME) || event.getName().equals(RocmStrings.HSA_FUNCTION_NAME)) {
+        if (event.getName().endsWith("function_name")) {
             ITmfStateSystemBuilder ssb = getStateSystemBuilder();
             if (ssb == null) {
                 return;
@@ -44,6 +44,19 @@ public class RocmFunctionNameStateProvider extends AbstractTmfStateProvider {
                 return;
             }
             ssb.modifyAttribute(ssb.getStartTime() + cid, functionName, apiQuark);
+        }
+        if (event.getName().equals("counters")) {
+            ITmfStateSystemBuilder ssb = getStateSystemBuilder();
+            if (ssb == null) {
+                return;
+            }
+            int counterNameQuark = ssb.getQuarkAbsoluteAndAdd("Counters Name");
+            String counterName = event.getContent().getFieldValue(String.class, RocmStrings.NAME);
+            Integer counterId = event.getContent().getFieldValue(Integer.class, "id");
+            if (counterName == null || counterId == null) {
+                return;
+            }
+            ssb.modifyAttribute(ssb.getStartTime() + counterId, counterName, counterNameQuark);
         }
     }
 

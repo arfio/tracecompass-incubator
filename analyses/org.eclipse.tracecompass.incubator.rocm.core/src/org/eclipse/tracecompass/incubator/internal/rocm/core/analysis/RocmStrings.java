@@ -30,6 +30,8 @@ public interface RocmStrings {
     String KERNEL_EVENT = "kernel_event";
     String HIP_FUNCTION_NAME = "hip_function_name";
     String HSA_FUNCTION_NAME = "hsa_function_name";
+    String METRIC_DOUBLE = "metric_double";
+    String METRIC_INTEGER = "metric_uint64";
 
     /* Field names */
     String NAME = "name";
@@ -54,7 +56,6 @@ public interface RocmStrings {
     String MESSAGE = "message";
 
     /* State categories */
-    String EMPTY_STRING = "";
     String EDGES = "Edges";
     String GPU_ACTIVITY = "GPU Activity";
     String GPU = "GPU ";

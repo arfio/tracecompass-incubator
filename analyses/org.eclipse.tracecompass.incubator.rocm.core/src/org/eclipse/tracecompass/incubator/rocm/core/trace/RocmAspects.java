@@ -4,9 +4,9 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmStrings;
+import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.handlers.ApiEventHandler;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
-
 import com.google.common.collect.ImmutableList;
 
 @org.eclipse.jdt.annotation.NonNullByDefault
@@ -45,7 +45,7 @@ public class RocmAspects {
         }
     };
 
-    private static final ITmfEventAspect<Integer> QUEUEID_ASPECT = new ITmfEventAspect<Integer>() {
+    private static final ITmfEventAspect<Integer> QUEUE_ID_ASPECT = new ITmfEventAspect<Integer>() {
         @Override
         public String getName() {
             return Messages.getMessage(Messages.AspectName_QueueID);
@@ -62,7 +62,7 @@ public class RocmAspects {
         }
     };
 
-    private static final ITmfEventAspect<Integer> STREAMID_ASPECT = new ITmfEventAspect<Integer>() {
+    private static final ITmfEventAspect<Integer> STREAM_ID_ASPECT = new ITmfEventAspect<Integer>() {
         @Override
         public String getName() {
             return Messages.getMessage(Messages.AspectName_StreamID);
@@ -79,7 +79,7 @@ public class RocmAspects {
         }
     };
 
-    private static final ITmfEventAspect<Integer> QUEUEINDEX_ASPECT = new ITmfEventAspect<Integer>() {
+    private static final ITmfEventAspect<Integer> QUEUE_INDEX_ASPECT = new ITmfEventAspect<Integer>() {
         @Override
         public String getName() {
             return Messages.getMessage(Messages.AspectName_QueueIndex);
@@ -96,12 +96,37 @@ public class RocmAspects {
         }
     };
 
+    private static final ITmfEventAspect<String> FUNCTION_NAME_ASPECT = new ITmfEventAspect<String>() {
+        @Override
+        public String getName() {
+            return Messages.getMessage(Messages.AspectName_FunctionName);
+        }
+
+        @Override
+        public String getHelpText() {
+            return ITmfEventAspect.EMPTY_STRING;
+        }
+
+        @Override
+        public @Nullable String resolve(ITmfEvent event) {
+            if (event.getName().endsWith("_api")) { //$NON-NLS-1$
+                return ApiEventHandler.getFunctionApiName(event);
+            }
+            String name = event.getContent().getFieldValue(String.class, RocmStrings.NAME);
+            if (name == null) {
+                name = event.getContent().getFieldValue(String.class, RocmStrings.KERNEL_NAME);
+            }
+            return name;
+        }
+    };
+
     private static final List<ITmfEventAspect<?>> ASPECTS = ImmutableList.of(
             getPIDAspect(),
             getTIDAspect(),
             getQueueIDAspect(),
             getStreamIDAspect(),
-            getQueueIndexAspect());
+            getQueueIndexAspect(),
+            getFunctionNameAspect());
 
     private RocmAspects() {
 
@@ -131,7 +156,7 @@ public class RocmAspects {
      * @return The queue ID
      */
     public static ITmfEventAspect<Integer> getQueueIDAspect() {
-        return QUEUEID_ASPECT;
+        return QUEUE_ID_ASPECT;
     }
 
     /**
@@ -140,7 +165,7 @@ public class RocmAspects {
      * @return The stream ID
      */
     public static ITmfEventAspect<Integer> getStreamIDAspect() {
-        return STREAMID_ASPECT;
+        return STREAM_ID_ASPECT;
     }
 
     /**
@@ -149,7 +174,16 @@ public class RocmAspects {
      * @return The event index in its HSA queue
      */
     public static ITmfEventAspect<Integer> getQueueIndexAspect() {
-        return QUEUEINDEX_ASPECT;
+        return QUEUE_INDEX_ASPECT;
+    }
+
+    /**
+     * Get the name of the function executed represented by the event
+     *
+     * @return The function name
+     */
+    public static ITmfEventAspect<String> getFunctionNameAspect() {
+        return FUNCTION_NAME_ASPECT;
     }
 
     /**

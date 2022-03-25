@@ -1,5 +1,6 @@
 package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.handlers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.CallStackStateProvider;
 import org.eclipse.tracecompass.incubator.callstack.core.instrumented.statesystem.InstrumentedCallStackAnalysis;
 import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmCallStackStateProvider;
@@ -28,7 +29,7 @@ public class RoctxEventHandler extends GpuEventHandler {
         // Push message
         Long timestamp = event.getTimestamp().getValue();
         String message = event.getContent().getFieldValue(String.class, RocmStrings.MESSAGE);
-        if (message == null || message.equals(RocmStrings.EMPTY_STRING)) {
+        if (message == null || message.equals(StringUtils.EMPTY)) {
             ssb.popAttribute(timestamp, callStackQuark);
             return;
         }
