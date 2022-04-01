@@ -45,19 +45,6 @@ public class RocmMetadataStateProvider extends AbstractTmfStateProvider {
             }
             ssb.modifyAttribute(ssb.getStartTime() + cid, functionName, apiQuark);
         }
-        if (event.getName().equals("counters")) {
-            ITmfStateSystemBuilder ssb = getStateSystemBuilder();
-            if (ssb == null) {
-                return;
-            }
-            int counterNameQuark = ssb.getQuarkAbsoluteAndAdd("Counters Name");
-            String counterName = event.getContent().getFieldValue(String.class, RocmStrings.NAME);
-            Integer counterId = event.getContent().getFieldValue(Integer.class, "id");
-            if (counterName == null || counterId == null) {
-                return;
-            }
-            ssb.modifyAttribute(ssb.getStartTime() + counterId, counterName, counterNameQuark);
-        }
     }
 
     public static int getFunctionId(@NonNull ITmfEvent event) {

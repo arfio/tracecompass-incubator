@@ -1,9 +1,7 @@
 package org.eclipse.tracecompass.incubator.rocm.core.trace;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
@@ -50,11 +48,14 @@ public class RocmTrace extends CtfTmfTrace {
 
     /** Collection of aspects, default values */
     private @NonNull Collection<ITmfEventAspect<?>> fAspects = ImmutableSet.copyOf(ROCM_CTF_ASPECTS);
+
     private static final int CONFIDENCE = 100;
     /**
      * This is a reduction factor to avoid overflows.
      */
     private static final int REDUCTION_FACTOR = 4096;
+
+    private static final int VERSION = 1;
 
     /** Api type mapped to integer ids */
     private Map<String, Integer> fApiMap;
@@ -97,7 +98,7 @@ public class RocmTrace extends CtfTmfTrace {
     private void initializeApiMap() {
         fApiMap = new HashMap<>();
         for (ITmfEventType eventType : getContainedEventTypes()) {
-            if (eventType.getName().endsWith("_api")) {
+            if (eventType.getName().endsWith("_api")) { //$NON-NLS-1$
                 fApiMap.put(eventType.getName(), fApiMap.size());
             }
         }
@@ -126,12 +127,14 @@ public class RocmTrace extends CtfTmfTrace {
         ITmfContext context = seekEvent(new CtfLocation(new CtfLocationInfo(0L, 0L)));
 
         for (ITmfEventType eventType : trace.getContainedEventTypes()) {
-            if (eventType.getName().equals(RocmStrings.GPU_KERNEL)) {
-                while (true) {
+            if (eventType.getName().equals(RocmStrings.METRIC_NAME)) {
+                for(int i = 0; i < 10000; i++) {
                     ITmfEvent event = getNext(context);
-                    if (event.getName().equals(RocmStrings.GPU_KERNEL)) {
-                        buildCounterAspectsFromEvent(perfBuilder, event);
+                    if (event.getName().equals(RocmStrings.METRIC_NAME_END)) {
                         break;
+                    }
+                    if (event.getName().equals(RocmStrings.METRIC_NAME)) {
+                        buildCounterAspectsFromEvent(perfBuilder, event);
                     }
                 }
                 break;
@@ -142,18 +145,9 @@ public class RocmTrace extends CtfTmfTrace {
     }
 
     private static void buildCounterAspectsFromEvent(ImmutableSet.Builder<ITmfEventAspect<?>> builder, ITmfEvent event) {
-        List<String> blacklistFields = new ArrayList<>(List.of(
-                RocmStrings.NAME, RocmStrings.ARGS, RocmStrings.KERNEL_NAME,
-                RocmStrings.KERNEL_DISPATCH_ID, RocmStrings.GPU_ID,
-                RocmStrings.QUEUE_ID, RocmStrings.TID, RocmStrings.PID,
-                RocmStrings.SIGNAL, RocmStrings.OBJECT, RocmStrings.COMPLETE_TS,
-                RocmStrings.DISPATCH_TS
-        ));
-        for (String fieldName: event.getContent().getFieldNames()) {
-            if (blacklistFields.contains(fieldName) == false) {
-                builder.add(new RocmCounterAspect(fieldName, fieldName, GpuAspect.class));
-            }
-        }
+        String fieldName = event.getContent().getFieldValue(String.class, RocmStrings.NAME);
+        Integer id = event.getContent().getFieldValue(Integer.class, RocmStrings.ID);
+        builder.add(new RocmCounterAspect(fieldName, fieldName, GpuAspect.class, id));
     }
 
     @Override
@@ -176,27 +170,23 @@ public class RocmTrace extends CtfTmfTrace {
             /* Make sure the domain is "kernel" in the trace's env vars */
             String domain = environment.get("tracer_name"); //$NON-NLS-1$
             if (domain == null || !domain.equals("\"rocprof\"")) { //$NON-NLS-1$
-                return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "This trace was not recognized as a ROCm trace. You can update your rocprofiler version or you can change manually the tracer name to \"rocprof\" in the metadata file to force the validation.");
+                return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "This trace was not recognized as a ROCm trace. You can update your rocprofiler version or you can change manually the tracer name to \"rocprof\" in the metadata file to force the validation."); //$NON-NLS-1$
             }
-            return new TraceValidationStatus(CONFIDENCE, Activator.PLUGIN_ID);
+
+            int tracerMajor = Integer.parseInt(environment.get("plugin_major")); //$NON-NLS-1$
+            int tracerMinor = Integer.parseInt(environment.get("plugin_minor")); //$NON-NLS-1$
+            return checkVersion(tracerMajor, tracerMinor);
         }
         return status;
-        /*IStatus status = super.validate(project, path);
-        if (status instanceof CtfTraceValidationStatus) {
-            String tracerName = CtfUtils.getTracerName(this);
-            int tracerMajor = CtfUtils.getTracerMajorVersion(this);
-            int tracerMinor = CtfUtils.getTracerMinorVersion(this);
-            if (tracerName != null && tracerName.equals("rocprof")) {
-                if (tracerMajor < 3) {
-                    return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "The tracer version is " + tracerMajor + "." + tracerMinor + " and this version of the ROCm plugin supports only tracer with versions > 3.0");
-                } else if (tracerMajor > 3) {
-                    return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "The ROCm plugin version needs to be updated to support this new version of rocprofiler.");
-                }
-                return new TraceValidationStatus(CONFIDENCE, Activator.PLUGIN_ID);
-            }
-            return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "This trace was not recognized as a ROCm trace. You can update your rocprofiler version or you can change manually the tracer name to \"rocprof\" in the metadata file to force the validation."); //$NON-NLS-1$
+    }
+
+    private static IStatus checkVersion(int tracerMajor, int tracerMinor) {
+        if (tracerMajor < VERSION) {
+            return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "The tracer version is " + tracerMajor + "." + tracerMinor + " and this version of the ROCm plugin supports only tracer with versions > 3.0"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        } else if (tracerMajor > VERSION) {
+            return new Status(IStatus.ERROR, Activator.PLUGIN_ID, "The ROCm plugin version needs to be updated to support this new version of rocprofiler."); //$NON-NLS-1$
         }
-        return status;*/
+        return new TraceValidationStatus(CONFIDENCE, Activator.PLUGIN_ID);
     }
 
     @Override

@@ -32,6 +32,8 @@ public interface RocmStrings {
     String HSA_FUNCTION_NAME = "hsa_function_name";
     String METRIC_DOUBLE = "metric_double";
     String METRIC_INTEGER = "metric_uint64";
+    String METRIC_NAME = "metric_name";
+    String METRIC_NAME_END = "metric_name_end";
 
     /* Field names */
     String NAME = "name";
@@ -48,12 +50,14 @@ public interface RocmStrings {
     String TID = "tid";
     String PID = "pid";
     String CORR_ID = "index";
+    String ID = "id";
     String SIGNAL = "sig";
     String OBJECT = "obj";
     String DISPATCH_TS = "dipatch_time";
     String COMPLETE_TS = "complete_time";
     String END = "end";
     String MESSAGE = "message";
+    String VALUE = "value";
 
     /* State categories */
     String EDGES = "Edges";

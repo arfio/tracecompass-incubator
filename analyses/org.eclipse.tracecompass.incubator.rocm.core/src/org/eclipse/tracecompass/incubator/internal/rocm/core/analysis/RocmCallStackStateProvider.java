@@ -68,7 +68,7 @@ public class RocmCallStackStateProvider extends AbstractTmfStateProvider {
 
     @Override
     public int getVersion() {
-        return 0;
+        return 1;
     }
 
     @Override
