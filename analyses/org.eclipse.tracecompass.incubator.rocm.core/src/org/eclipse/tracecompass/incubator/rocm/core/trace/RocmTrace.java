@@ -126,9 +126,17 @@ public class RocmTrace extends CtfTmfTrace {
         ImmutableSet.Builder<ITmfEventAspect<?>> perfBuilder = new ImmutableSet.Builder<>();
         ITmfContext context = seekEvent(new CtfLocation(new CtfLocationInfo(0L, 0L)));
 
+        // Get the number of events or an arbitrary number to check if there is any metric definition in the trace
+        Map<String, String> environment = getEnvironment();
+        int traceSize = 0;
+        if (environment != null) {
+            traceSize = Integer.parseInt(environment.get("nb_events")); //$NON-NLS-1$
+        }
+        int nEventsToRead = Integer.min(traceSize, 10000);
+
         for (ITmfEventType eventType : trace.getContainedEventTypes()) {
             if (eventType.getName().equals(RocmStrings.METRIC_NAME)) {
-                for(int i = 0; i < 10000; i++) {
+                for(int i = 0; i < nEventsToRead; i++) {
                     ITmfEvent event = getNext(context);
                     if (event.getName().equals(RocmStrings.METRIC_NAME_END)) {
                         break;
