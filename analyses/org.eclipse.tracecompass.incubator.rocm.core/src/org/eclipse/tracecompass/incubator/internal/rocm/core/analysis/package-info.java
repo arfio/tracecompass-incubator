@@ -8,4 +8,5 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
+@org.eclipse.jdt.annotation.NonNullByDefault
 package org.eclipse.tracecompass.incubator.internal.rocm.core.analysis;

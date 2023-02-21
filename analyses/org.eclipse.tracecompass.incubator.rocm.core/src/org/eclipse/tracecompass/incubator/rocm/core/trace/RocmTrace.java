@@ -23,7 +23,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.incubator.internal.rocm.core.Activator;
-import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.RocmStrings;
+import org.eclipse.tracecompass.incubator.internal.rocm.core.analysis.old.RocmStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventType;
 import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
